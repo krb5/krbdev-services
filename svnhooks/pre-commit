@@ -1,0 +1,12 @@
+#!/bin/sh
+
+REPOS="$1"
+REV="$2"
+
+PATH=/usr/local/bin:/usr/athena/bin:/bin/athena:/usr/bin:/bin:/usr/ucb
+export PATH
+
+/svn/krb5/hooks/pre-commit-whitespace-hook "$@" || exit 1
+/svn/krb5/hooks/pre-commit-alloc-hook "$@" || exit 1
+
+exit 0

@@ -1,0 +1,31 @@
+#!/usr/bin/env perl
+use warnings;			# no -w with /usr/bin/env on Linux
+my $user = getpwuid($<);
+my $output;
+
+mkdir "/tmp/ssh-drool-$user";
+$ENV{HOME} = "/tmp/ssh-drool-$user";
+system("cp", "/svn/krb5/hooks/krbsnap_rsa_key", "$ENV{HOME}/identity");
+system("chmod", "600", "$ENV{HOME}/identity");
+open(SSH, "ssh -2 -oStrictHostKeyChecking=no -i $ENV{HOME}/identity -l rtcvs "
+      ."-F /dev/null "
+      ."-o PreferredAuthentications=publickey "
+      ."-o KerberosTgtPassing=no "
+      ."-o UserKnownHostsFile=/tmp/ssh-known-hosts-$user  "
+      ."krbdev-r1.mit.edu /var/rt2/bin/rt-reserve-ticket 2>/tmp/commit-spew-$$|") or die $!;
+{
+    local $/ = undef;
+    $output = <SSH>;
+    close SSH;
+}
+
+print $output;
+
+open(LOGFILE, ">>/svn/krb5/hooks/reserve.log");
+my $date = `date`;
+chomp $date;
+chomp $output;
+print LOGFILE "$date reserved ticket $output\n";
+close LOGFILE;
+
+die "bad output" unless $output =~ /^\d+$/;

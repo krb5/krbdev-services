@@ -1,0 +1,272 @@
+#!/usr/bin/env perl
+use warnings;
+use strict;
+use Data::Dumper;
+
+my ($repospath, $txnname) = @ARGV;
+my $svnlook = "/usr/local/bin/svnlook";
+
+# maximum number of lines to search for emacs settings
+my $maxheadlines = 5;
+
+#my $logfilename="/svn/krb5/hooks/whitespace.log";
+my $logfilename="$repospath/hooks/whitespace.log";
+
+my $warncount = 0;
+
+open(LOGFILE, ">>$logfilename");
+sub dprint
+{
+    print LOGFILE @_;
+}
+$SIG{'__DIE__'} = sub { dprint("exiting on error: $_[0]\n"); close LOGFILE };
+
+sub dowarn {
+    my ($line) = @_;
+    dprint $line;
+    print STDERR $line;
+    $warncount++;
+}
+
+my $date = `date`;
+die "date exited with status $?" if $?;
+chomp $date;
+
+my $cmd = "$svnlook changed -t $txnname $repospath";
+my @changed = `$cmd`;
+die "svnlook changed -t $txnname $repospath exited with status $?" if $?;
+dprint("$date\n");
+
+# hash of hashrefs of file-local variables
+my %filestocheck;
+
+# Gather names of changed files.
+foreach my $line (@changed) {
+    my ($flag, $fname);
+    dprint("svnlook changed: $line");
+    chomp $line;
+    next unless ($flag, $fname) = ($line =~ /^([AU])\W*\s+(.*)$/);
+    next if $fname =~ m|/$|;	# ignore directories
+    $filestocheck{$fname} = undef;
+}
+
+open(SVNLOG, "$svnlook log -t $txnname $repospath|")
+    or die "can't svnlook log: $!";
+foreach my $line (<SVNLOG>) {
+    if ($line =~ /^\s*bigredbutton:\s*whitespace\s*$/i) {
+	dprint("Big red button pushed; bailing\n");
+	exit 0;
+    }
+}
+
+foreach my $file (keys %filestocheck) {
+    dprint("getting filevars: $file\n");
+    $filestocheck{$file} = getfilevars($file);
+}
+
+dprint(Dumper(\%filestocheck));
+
+my %chunkstate;
+my ($curfile, @chunkid);
+# parts of chunk id
+my ($oldtop, $oldlen, $newtop, $newlen);
+my ($oldlineno, $newlineno, $lastwasplus);
+open(DIFF, "$svnlook diff --no-diff-added --no-diff-deleted -t $txnname $repospath|")
+    or die "can't svnlook diff: $!";
+foreach my $line (<DIFF>) {
+    dprint($line);
+    my $file;
+    my $linetype;
+    # Do this check PRIOR to checking $chunkstate{'havechunk'} because
+    # a new file lacking newline at the end will show up as having
+    # completed the line count of the chunk -- the indication
+    #
+    #     \ No newline at end of file
+    #
+    # doesn't count in the chunk header line count.
+    if ($line =~ /^\\ No newline/) {
+	if ($chunkstate{'lastlinetype'} eq '+') {
+	    my $lineno = $chunkstate{'newlineno'};
+	    dowarn "$curfile:$lineno: missing newline at end of file\n";
+	}
+	if ($chunkstate{'lastlinetype'} eq '-') {
+	    dprint("old file was missing newline at end\n");
+	    next;
+	}
+    }
+    if (!$chunkstate{'havechunk'}) {
+	if (($file) = ($line =~ /^--- ([^\t]+)\t\d+/)) {
+	    dprint("found diff header for $file\n");
+	    $chunkstate{'file'} = $file;
+	    $curfile = $file;
+	    next;
+	}
+	unless (@chunkid =
+		($line =~ /^\@\@ -(\d+),(\d+) \+(\d+),(\d+) \@\@$/)) {
+	    dprint("no chunk header; skipping\n");
+	    next;
+	}
+	dprint("found chunk id @chunkid\n");
+	initstate(\%chunkstate, @chunkid);
+	# ($oldtop, $oldlen, $newtop, $newlen) = @chunkid;
+	# $oldtop-- if $oldlen;
+	# $newtop-- if $newlen;
+	# $chunkstate{'oldlineno'} = $oldtop;
+	# $chunkstate{'newlineno'} = $newtop;
+	# $chunkstate{'oldbottom'} = $oldtop + $oldlen;
+	# $chunkstate{'newbottom'} = $newtop + $newlen;
+	# $chunkstate{'havechunk'} = 1;
+	next;
+    }
+    unless (($linetype) = ($line =~ /^([-+ ])/)) {
+	if ($chunkstate{'havechunk'}) {
+	    dprint("unknown line type\n");
+	} else {
+	    dprint("chunk ended prematurely\n");
+	}
+	next;
+    }
+    update_linenos(\%chunkstate, $linetype);
+    checkline(\%chunkstate, $line);
+}
+close DIFF;
+
+if ($warncount) {
+    print STDERR "$warncount whitespace problems; see above.";
+}
+dprint("done.\n");
+close LOGFILE;
+if ($warncount) { exit 1; } else { exit 0; }
+
+sub initstate {
+    my ($cs, @chunkid) = @_;
+    my ($oldtop, $oldlen, $newtop, $newlen) = @chunkid;
+    $oldtop-- if $oldlen;
+    $newtop-- if $newlen;
+    $cs->{'oldlineno'} = $oldtop;
+    $cs->{'newlineno'} = $newtop;
+    $cs->{'oldbottom'} = $oldtop + $oldlen;
+    $cs->{'newbottom'} = $newtop + $newlen;
+    $cs->{'havechunk'} = 1;
+}
+
+# Update line numbers according to type of diff line.
+sub update_linenos {
+    my ($cs, $linetype) = @_;
+    # table to determine whether to increment oldlineno
+    my %otab = (
+	'-' => 1,
+	'+' => 0,
+	' ' => 1,
+	);
+    # table to determine whether to increment newlineno
+    my %ntab = (
+	'-' => 0,
+	'+' => 1,
+	' ' => 1,
+	);
+    $cs->{'oldlineno'} += $otab{$linetype};
+    $cs->{'newlineno'} += $ntab{$linetype};
+    dprint("[$cs->{'oldlineno'},$cs->{'oldbottom'}] " .
+	   "[$cs->{'newlineno'},$cs->{'newbottom'}]\n");
+    $cs->{'lastlinetype'} = $linetype;
+    if ($cs->{'oldlineno'} == $cs->{'oldbottom'} &&
+	$cs->{'newlineno'} == $cs->{'newbottom'}) {
+	$cs->{'havechunk'} = 0;
+	dprint("last line in chunk\n");
+    }
+}
+
+# whether to skip a given file
+sub skipfile {
+    my ($file) = @_;
+    if ($file =~ /\.c$/) { return 0; }
+    if ($file =~ /\.h$/) { return 0; }
+    if ($file =~ /\.hin$/) { return 0; }
+    if ($file =~ /\.h\.in$/) { return 0; }
+    return 1;
+}
+
+sub checkline {
+    my ($cs, $line) = @_;
+    my $file = $cs->{'file'};
+    my $lineno;
+    my $linetype = $cs->{'lastlinetype'};
+    my $vars = $filestocheck{$file};
+    if ($linetype eq '-') {
+	$lineno = $cs->{'oldlineno'}
+    } elsif ($linetype eq '+') {
+	$lineno = $cs->{'newlineno'}
+    }
+    return if skipfile($file);
+    chomp $line;
+
+    if ($linetype eq '+') {
+	my $varhash = hashvars($line);
+	if ($varhash) {
+	    dprint("got updated filevars\n");
+	    $filestocheck{$file} = $varhash;
+	    return;
+	}
+    }
+    # Reject added tab characters according to file-local variables.
+    if ($line =~ /\t/) {
+	if ($linetype eq '+') {
+	    my $s = "$file:$lineno: tab character(s) added:\n$line\n";
+	    if (defined($vars->{'indent-tabs-mode'}) &&
+		$vars->{'indent-tabs-mode'} eq 'nil') {
+		dowarn $s;
+	    } else {
+		dprint $s;
+	    }
+	} elsif ($linetype eq '-') {
+	    dprint "$file:$lineno: tab characters(s) removed\n";
+	}
+    }
+    # Always check for trailing whitespace.
+    $line =~ s/\r$//;
+    if ($line =~ /\s$/) {
+	if ($linetype eq '+') {
+	    dowarn "$file:$lineno: trailing whitespace:\n$line\n";
+	} elsif ($linetype eq '-') {
+	    dprint "$file:$lineno: trailing whitespace deleted\n";
+	}
+    }
+}
+
+sub getfilevars {
+    my ($file) = @_;
+    my ($vars, $varhash);
+    my $lcount = 0;
+    open(LOOK, "$svnlook cat -t $txnname $repospath $file|")
+	or die "can't svnlook cat $file: $!";
+    foreach my $line (<LOOK>) {
+	dprint("$file: $line");
+	$varhash = hashvars($line);
+	last if $varhash;
+	last if ++$lcount > $maxheadlines;
+    }
+    close LOOK;
+    return $varhash;
+}
+
+sub hashvars {
+    my ($line) = @_;
+    my %varhash;
+    my $rawvars;
+    my $found = (($rawvars) = ($line =~ /-\*-\s*(.*[^\s]+)\s*-\*-/));
+    return undef unless $found;
+    dprint("got rawvars: $rawvars\n") if $rawvars;
+    # Won't handle quoted semicolons; probably not a big problem.
+    my @settings = split /;/, $rawvars;
+    dprint("settings: @settings\n");
+    foreach my $setting (@settings) {
+	my ($var, $value);
+	next unless (($var, $value) =
+		     ($setting =~ /\s*((?:\w|-)+)\s*:\s*(.+)\b\s*/));
+	dprint("setting: $var=$value\n");
+	$varhash{$var} = $value;
+    }
+    dprint("varhash: @{[%varhash]}\n");
+    return {%varhash};
+}

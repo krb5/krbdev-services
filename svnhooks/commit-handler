@@ -1,0 +1,210 @@
+#!/usr/bin/env perl
+use warnings;			# no -w with /usr/bin/env on Linux
+use strict;
+use lib '/svn/krb5/hooks/lib';
+use vars qw(@dirs $prefix $rev $author $log $changed
+	    $repos $email $anoncopy $rt);
+
+$email = "";
+$anoncopy = "";
+$rt = 0;
+
+### Subroutines
+# get the result of a command; fail if it does.
+sub cmdres ($) {
+    my ($cmd) = @_;
+    my $result = `$cmd`;
+    die "$0: $cmd failed with wait status $?\n" if $?;
+    $result;
+}
+
+###main program
+
+use Getopt::Long;
+unless (GetOptions(
+		   "repos=s" =>\$repos,
+		   "email=s" => \$email,
+		   "rt" => \$rt,
+		   "anoncopy=s" => \$anoncopy,
+		   "rev=i" => \$rev)) {
+    die "Getopt failed, stopped ";
+}
+
+$author = cmdres("svnlook author -r $rev $repos");
+chomp $author;
+
+@dirs = split("\n", cmdres("svnlook dirs-changed -r $rev $repos"));
+
+$log = cmdres("svnlook log -r $rev $repos");
+$changed = cmdres("svnlook changed -r $rev $repos");
+
+if (0) {
+    open(ZWRITE, "|/usr/athena/bin/zwrite -n -d -q tlyu");
+    print ZWRITE <<EOF;
+repos: $repos
+email: $email
+rt: $rt
+anoncopy: $anoncopy
+rev: $rev
+author: $author
+dirs: @dirs
+env: @{[%ENV]}
+id: @{[`/usr/bin/id -a`]}
+attach: @{[`/bin/athena/attach`]}
+klist: @{[`/usr/athena/bin/klist`]}
+EOF
+    close(ZWRITE);
+}
+
+$prefix = $dirs[0];
+foreach my $dir (@dirs) {
+    my $lc;
+  inner: for ($lc = 0;
+	      ($lc < length($dir)) && ($lc < length($prefix));
+	      $lc++) {
+	if (substr($prefix, $lc,1) ne substr($dir, $lc, 1)) {
+	    last inner;
+	}
+    }
+    $prefix = substr($prefix, 0, $lc);
+    # It is OK for the prefix to be a complete directory
+    # or to be some component that in a full directory prefix
+    next if $prefix eq $dir;
+    if ($prefix =~ m:(.*)/.*$:) {
+	$prefix = $1."/";
+    } else {
+	$prefix = "";
+    }
+}
+
+foreach my $dir (@dirs) {
+    substr($dir, 0, length($prefix)) = "";
+    $dir =~ s:^/::;
+}
+
+
+my @difflines = `svnlook diff --no-diff-deleted -r $rev $repos`;
+my @filedifflines;
+my @propdifflines;
+my $isprop = 0;
+
+foreach my $line (@difflines) {
+    if ($line =~ /^Property/) {
+	$isprop = 1;
+    }
+    if ($line =~ /^(Modified|Deleted|Added)/) {
+	$isprop = 0;
+    }
+    push @propdifflines, $line if $isprop;
+    push @filedifflines, $line unless $isprop;
+}
+
+# open ZWRITE, "| /usr/athena/bin/zwrite -n -q -d tlyu";
+# print ZWRITE @filedifflines, @propdifflines;
+# close ZWRITE;
+
+# we do not wish to send out email on commits to user directories
+# by the author of that directory.
+if ($prefix =~ m:users/$author/:) {
+    $email = 0;
+}
+
+use SVN::Hook::Alloc;
+my $h = SVN::Hook::Alloc->new_with_perlfile("$repos/hooks/alloc.conf");
+# my $log = $h->get_revprop($repos, $rev, 'svn:log');
+my $orig_log = $log;
+
+my $new_ticket = $h->get_alloced_prop($repos, $rev);
+
+if ($new_ticket) {
+#    print "commit-handler: new ticket $new_ticket\n";
+    chomp $new_ticket;
+    $orig_log =~ s/^(RT-)?Ticket:\s*$new_ticket\s*\n/RT-Ticket: new\nRT-id: $new_ticket\n/gim;
+#    print $orig_log;
+}
+
+if ($email) {
+    my $SENDMAIL;
+    $SENDMAIL = "/usr/lib/sendmail" if (-x "/usr/lib/sendmail");
+    $SENDMAIL = "/usr/sbin/sendmail" if (-x "/usr/sbin/sendmail");
+    my $dirs = join(" ", $prefix, @dirs);
+    if (length($dirs) >= 60) {
+	substr($dirs, 60) =~ s: .*$: ...:;
+    }
+    open(EMAIL, "|$SENDMAIL -t -f$author\@mit.edu")
+      or die "Failed to open $SENDMAIL: $!, stopped ";
+
+    print EMAIL <<EOF;
+To: $email
+Subject: svn rev #$rev: $dirs
+
+EOF
+
+    print EMAIL "http://src.mit.edu/fisheye/changelog/krb5/?cs=$rev\n"
+      if $repos =~ m|/krb5$|;
+    print EMAIL "Commit By: " . $author."\n";
+    print EMAIL "Log Message:\n";
+    print EMAIL $log;
+    print EMAIL "\n\nChanged Files:\n";
+    print EMAIL $changed;
+    if (scalar(@filedifflines) > 5000) {
+	print EMAIL "Diff larger than 5000 lines; suppressing.\n";
+    } else {
+	print EMAIL @filedifflines;
+	print EMAIL @propdifflines;
+    }
+    close EMAIL;
+}
+
+if ($rt) {
+    my $user = $author;
+    mkdir "/tmp/ssh-drool-$user";
+    $ENV{HOME} = "/tmp/ssh-drool-$user";
+    system("cp", "/svn/krb5/hooks/krbsnap_rsa_key", "$ENV{HOME}/identity");
+    system("chmod", "600", "$ENV{HOME}/identity");
+    open (RT, "|ssh -2 -oStrictHostKeyChecking=no -i $ENV{HOME}/identity -l rtcvs "
+	  ."-F /dev/null "
+	  ."-o PreferredAuthentications=publickey "
+	  ."-o KerberosTgtPassing=no "
+	  ."-o UserKnownHostsFile=/tmp/ssh-known-hosts-$user  "
+	  ."krbdev-r1.mit.edu /var/rt2/bin/rt-cvsgate $user 2>/tmp/commit-spew-$$") or system("/usr/athena/bin/zwrite", "-n", "-d", "-q", "tlyu", "-m", "ssh pipe open failed status $?");
+
+#    print RT "RT-id: $new_ticket\n" if $new_ticket;
+    print RT $orig_log;
+    print RT "\n";
+    print RT "http://src.mit.edu/fisheye/changelog/krb5/?cs=$rev\n" if $repos =~ m|/krb5$|;
+    print RT "Commit By: $author\n";
+    print RT "Revision: $rev\n";
+    print RT "Changed Files:\n";
+    print RT $changed;
+    close RT;
+    # system("/usr/athena/bin/zwrite", "-n", "-d", "-q", "tlyu", "-m", "ssh exit status $?");
+}
+
+if ($anoncopy) {
+    $ENV{KRB5CCNAME} = "/tmp/krb5cc_$author";
+    system("kinit", "-k", "-t", "/svn/krb5/hooks/krbsnap.keytab", "krbsnap") == 0
+	or die "Failed kinit to krbsnap (exit $?): $!";
+    system("aklog") == 0 or die "Failed to aklog (exit $?): $!";
+    my $lockfile = $anoncopy."/anonymous-lock";
+    if (mkdir ($lockfile)) {
+	$@ = "";
+	eval {
+	    my $anon_youngest = cmdres("svnlook youngest $anoncopy");
+	    my $youngest = cmdres("svnlook youngest $repos");
+	    chomp $youngest;
+	    chomp $anon_youngest;
+	    if ($youngest > $anon_youngest) {
+		$anon_youngest++; # dumping from n to no includes one revision in svn
+		cmdres("svnadmin dump -q --incremental --deltas -r$anon_youngest:$youngest $repos |svnadmin load -q $anoncopy");
+	    }
+	};
+
+	rmdir $lockfile;
+	system("unlog") == 0 or die "Failed to unlog (exit $?): $!";
+	system("kdestroy") == 0 or die "Failed to kdestroy (exit $?): $!";
+	die $@ if $@;
+    }
+}
+
+1;

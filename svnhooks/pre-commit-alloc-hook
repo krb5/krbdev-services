@@ -1,0 +1,19 @@
+#!/usr/bin/env perl
+use warnings;			# no -w with /usr/bin/env on Linux
+use strict;
+use lib '/svn/krb5/hooks/lib';
+my ($repospath, $txnname) = @ARGV;
+use SVN::Hook::Alloc;
+my $h = SVN::Hook::Alloc->new_with_perlfile("$repospath/hooks/alloc.conf");
+my $log = $h->get_txn_prop($repospath, $txnname, 'svn:log');
+if ($log =~ m/^(RT-)?Ticket:\s*new\s*\n/im) {
+    $h->pre_commit(
+        @ARGV,
+        sub {
+            my ($self, $var) = @_;
+            my $log = $self->get_txn_prop(@ARGV, 'svn:log');
+            if ( $log =~ s/^((RT-)?Ticket):\s*new\s*\n/$1: $var\n/gim ) {
+                $self->set_txn_prop(@ARGV, 'svn:log', $log);
+            }
+        });
+}
