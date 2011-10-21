@@ -1,0 +1,7 @@
+Information, scripts, configuration, etc. about krbdev infrastructure
+components.
+
+
+krbsnap/
+        Nightly snapshot generation on krbdev.mit.edu.  Also periodic
+        git-svn sync to github.

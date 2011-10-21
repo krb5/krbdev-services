@@ -1,0 +1,11 @@
+#!/bin/sh
+cd $HOME
+lck=.anonsync
+fetch=k5anonfetch.git
+repo=krb5-anonsvn.git
+if mkdir $lck; then :; else exit; fi
+(cd $fetch && GIT_DIR=. git svn fetch)
+(cd $repo && git fetch)
+(cd $repo && git update-ref refs/heads/master refs/heads/trunk)
+(cd $repo && git push github-krb5)
+rmdir $lck
