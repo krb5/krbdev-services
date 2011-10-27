@@ -1,7 +1,7 @@
 ; $ORIGIN i.kerberos.org
 $TTL 60
 @		IN	SOA	ns1 krbcore-dns.mit.edu. (
-			2011102705	; Serial
+			2011102706	; Serial
 			604800		; Refresh
 			86400		; Retry
 			2419200		; Expire
@@ -32,3 +32,6 @@ _kpasswd._udp.ms3	IN	SRV	0 0 464 msps3.ms3
 msps1.ms1	IN	A	18.187.2.3
 msps2.ms2	IN	A	18.187.2.4
 msps3.ms3	IN	A	18.187.2.5
+
+_kerberos._udp.mit1	IN	SRV	0 0 88 krbdev-guest-11.mit.edu.
+_kerberos._tcp.mit1	IN	SRV	0 0 88 krbdev-guest-11.mit.edu.
