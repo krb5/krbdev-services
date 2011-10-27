@@ -8,3 +8,6 @@ include "/etc/bind/zones.rfc1918";
 
 zone "kerberos.org" { type master; allow-query { any; }; allow-transfer { any; }; file "/etc/bind/kerberos.zone"; };
 zone "kerberos.net" { type master; allow-query { any; }; allow-transfer { any; }; file "/etc/bind/kerberos.zone"; };
+
+// Zone for interop event.
+zone "i.kerberos.org" { type master; allow-query { any; }; allow-transfer { any; }; file "/etc/bind/interop.zone"; };

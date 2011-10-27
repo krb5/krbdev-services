@@ -1,7 +1,7 @@
 ; $ORIGIN kerberos.org
 $TTL 600
 @		IN	SOA	ns1 krbcore-dns.mit.edu. (
-			2011062800	; Serial
+			2011102701	; Serial
 			604800		; Refresh
 			86400		; Retry
 			2419200		; Expire
@@ -22,3 +22,7 @@ blog.test	IN	CNAME	www.test
 k5wiki.test	IN	CNAME	www.test
 ; CNAME with intentionally mismatched PTR record
 ptr-mismatch	IN	CNAME	www
+
+; Zone for interop event
+i		IN	NS	ns1.i
+i		IN	NS	ns2.i
