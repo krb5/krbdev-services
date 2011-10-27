@@ -1,7 +1,7 @@
 ; $ORIGIN i.kerberos.org
 $TTL 60
 @		IN	SOA	ns1 krbcore-dns.mit.edu. (
-			2011102706	; Serial
+			2011102708	; Serial
 			604800		; Refresh
 			86400		; Retry
 			2419200		; Expire
@@ -35,3 +35,30 @@ msps3.ms3	IN	A	18.187.2.5
 
 _kerberos._udp.mit1	IN	SRV	0 0 88 krbdev-guest-11.mit.edu.
 _kerberos._tcp.mit1	IN	SRV	0 0 88 krbdev-guest-11.mit.edu.
+
+; Windows auto-generated zone file
+
+_ldap._tcp.ms1.i.kerberos.org.  IN SRV 0 100 389 MSPS1.ms1.i.kerberos.org.
+_ldap._tcp.Default-First-Site-Name._sites.ms1.i.kerberos.org.  IN SRV 0 100 389 MSPS1.ms1.i.kerberos.org.
+_ldap._tcp.pdc._msdcs.ms1.i.kerberos.org.  IN SRV 0 100 389 MSPS1.ms1.i.kerberos.org.
+_ldap._tcp.gc._msdcs.ms1.i.kerberos.org.  IN SRV 0 100 3268 MSPS1.ms1.i.kerberos.org.
+_ldap._tcp.Default-First-Site-Name._sites.gc._msdcs.ms1.i.kerberos.org.  IN SRV 0 100 3268 MSPS1.ms1.i.kerberos.org.
+_ldap._tcp.779ebb2b-109e-48d9-901e-8e2e751ad0eb.domains._msdcs.ms1.i.kerberos.org.  IN SRV 0 100 389 MSPS1.ms1.i.kerberos.org.
+928cfc67-eac7-4467-b3c3-551f0d253fbd._msdcs.ms1.i.kerberos.org.  IN CNAME MSPS1.ms1.i.kerberos.org.
+_kerberos._tcp.dc._msdcs.ms1.i.kerberos.org.  IN SRV 0 100 88 MSPS1.ms1.i.kerberos.org.
+_kerberos._tcp.Default-First-Site-Name._sites.dc._msdcs.ms1.i.kerberos.org.  IN SRV 0 100 88 MSPS1.ms1.i.kerberos.org.
+_ldap._tcp.dc._msdcs.ms1.i.kerberos.org.  IN SRV 0 100 389 MSPS1.ms1.i.kerberos.org.
+_ldap._tcp.Default-First-Site-Name._sites.dc._msdcs.ms1.i.kerberos.org.  IN SRV 0 100 389 MSPS1.ms1.i.kerberos.org.
+; _kerberos._tcp.ms1.i.kerberos.org.  IN SRV 0 100 88 MSPS1.ms1.i.kerberos.org.
+_kerberos._tcp.Default-First-Site-Name._sites.ms1.i.kerberos.org.  IN SRV 0 100 88 MSPS1.ms1.i.kerberos.org.
+_gc._tcp.ms1.i.kerberos.org.  IN SRV 0 100 3268 MSPS1.ms1.i.kerberos.org.
+_gc._tcp.Default-First-Site-Name._sites.ms1.i.kerberos.org.  IN SRV 0 100 3268 MSPS1.ms1.i.kerberos.org.
+; _kerberos._udp.ms1.i.kerberos.org.  IN SRV 0 100 88 MSPS1.ms1.i.kerberos.org.
+; _kpasswd._tcp.ms1.i.kerberos.org.  IN SRV 0 100 464 MSPS1.ms1.i.kerberos.org.
+; _kpasswd._udp.ms1.i.kerberos.org.  IN SRV 0 100 464 MSPS1.ms1.i.kerberos.org.
+; ms1.i.kerberos.org.  IN AAAA 2002:12bb:203::12bb:203
+; gc._msdcs.ms1.i.kerberos.org.  IN AAAA 2002:12bb:203::12bb:203
+; ms1.i.kerberos.org.  IN AAAA 2001:4830:2446:bb:d905:fe44:4e69:cc22
+; gc._msdcs.ms1.i.kerberos.org.  IN AAAA 2001:4830:2446:bb:d905:fe44:4e69:cc22
+ms1.i.kerberos.org.  IN A 18.187.2.3
+; gc._msdcs.ms1.i.kerberos.org.  IN A 18.187.2.3
