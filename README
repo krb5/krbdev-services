@@ -2,6 +2,14 @@ Information, scripts, configuration, etc. about krbdev infrastructure
 components.
 
 
+bind/
+        Zone files etc. for kerberos.org and related domains.
+
 krbsnap/
         Nightly snapshot generation on krbdev.mit.edu.  Also periodic
         git-svn sync to github.
+
+svnhooks/
+        Hook scripts for our Subversion repositories.  This set comes
+        from the krb5 repository; krb5-appl might have a slightly
+        different set of scripts.
