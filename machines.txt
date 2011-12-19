@@ -1,0 +1,10 @@
+krbdev-sparc-build		SPARC/Solaris build server W91-130 cabinet 4.06
+e40-esx-krb-1			VMware ESX host E40 machine room
+kerberos-org			web server {www,k5wiki,blog}.kerberos.org
+krbdev				RT server, snapshots, buildbot, etc.
+
+krbdev-guest-03			amd64 Ubuntu 10.04 SecurID testing
+krbdev-guest-04			i386 Ubuntu 10.04 buildslave
+krbdev-guest-05			amd64 Ubuntu 10.04 kerborg migration staging
+krbdev-guest-06			amd64 Ubuntu 10.04 buildslave
+krbdev-guest-07			amd64 Sol10u9 buildslave
