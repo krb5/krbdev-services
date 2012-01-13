@@ -184,6 +184,8 @@ sub skipfile {
     if ($file =~ /\.h$/) { return 0; }
     if ($file =~ /\.hin$/) { return 0; }
     if ($file =~ /\.h\.in$/) { return 0; }
+    if ($file =~ /\.rst$/) { return 0; }
+    if ($file =~ /\.py$/) { return 0; }
     return 1;
 }
 
