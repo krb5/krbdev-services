@@ -1,0 +1,12 @@
+Source: mitkc-buildslave-config
+Section: mitkc-config
+Priority: optional
+Maintainer: Tom Yu <tlyu@mit.edu>
+Build-Depends: debhelper (>= 7)
+Standards-Version: 3.8.3
+
+Package: mitkc-buildslave-config
+Architecture: all
+Depends: autoconf, bison, build-essential, buildbot, dejagnu, gettext, libssl-dev, openafs-client, openafs-modules-dkms, portmap, python, subversion, tcl-dev, tcsh, ${misc:Depends}
+Description: MITKC buildbot slave configuration
+ Configure an Ubuntu server to be an MIT Kerberos Consortium buildbot slave
