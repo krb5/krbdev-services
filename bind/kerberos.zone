@@ -1,25 +1,25 @@
 ; $ORIGIN kerberos.org
-$TTL 600
+$TTL 3600
 @		IN	SOA	ns1 krbcore-dns.mit.edu. (
-			2011102701	; Serial
+			2012030101	; Serial
 			604800		; Refresh
 			86400		; Retry
 			2419200		; Expire
-			600)		; Negative Cache TTL
+			3600)		; Negative Cache TTL
 ;
 @		IN	NS	ns1
 @		IN	NS	ns2
-@	60	IN	A	18.9.62.44
+@		IN	A	18.9.62.44
 ns1		IN	A	18.9.62.44
 ns2		IN	A	18.9.62.43
-www	60	IN	A	18.9.62.44
+www		IN	A	18.9.62.44
 blog		IN	CNAME	www
 k5wiki		IN	CNAME	www
 ; testing subdomain
-test		IN	A	18.9.62.44
-www.test	IN	A	18.9.62.44
-blog.test	IN	CNAME	www.test
-k5wiki.test	IN	CNAME	www.test
+test	  	60	IN	A	18.3.60.39
+www.test	60	IN	A	18.3.60.39
+blog.test	60	IN	CNAME	www.test
+k5wiki.test	60	IN	CNAME	www.test
 ; CNAME with intentionally mismatched PTR record
 ptr-mismatch	IN	CNAME	www
 
