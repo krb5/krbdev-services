@@ -70,6 +70,24 @@ sub find_commands {
     my $lines = shift;
     my (@pseudoheaders);
 
+    #Look for headers at the end of the log message (new convention).
+    while ( my $line = pop @{$lines} ) {
+        next if $line =~ /^\s*?$/ and not scalar(@pseudoheaders);
+        if ( $line =~ /^(RT-)?[^\s():]+:/i ) {
+            unshift ( @pseudoheaders, $line );
+        }
+        #If we find a line that's not a command, get out.
+        else {
+            push ( @{$lines}, $line );
+            last;
+        }
+    }
+
+    if ( scalar(@pseudoheaders) ) {
+	return (@pseudoheaders);
+    }
+
+    #If we didn't find any, look at the beginning (old convention).
     while ( my $line = shift @{$lines} ) {
         next if $line =~ /^\s*?$/ and not scalar(@pseudoheaders);
         if ( $line =~ /^(RT-)?[^\s():]+:/i ) {
