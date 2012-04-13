@@ -1,0 +1,336 @@
+#!/usr/bin/perl -w
+use strict;
+
+#use lib qw (/var/rt2/perl5/lib /var/rt2/perl5/lib/sun4-solaris-thread-multi /var/rt2/perl5/lib/perl5/sun4-solaris-thread-multi);
+use lib "/var/rt2/lib";
+use lib "/var/rt2/etc";
+use MIME::Entity;
+
+# {{{ Get the RT stuff set up
+
+# {{{ sub rt_handler 
+
+sub rt_handler {
+    my (@LogMessage) = (@_);
+
+use RT::Interface::CLI qw(CleanEnv LoadConfig DBConnect
+  GetCurrentUser GetMessageContent);
+    require RT::Ticket;
+
+    #Connect to the database and get RT::SystemUser and RT::Nobody loaded
+    DBConnect();
+
+    #Get the current user all loaded
+    my ($Gecos, $CurrentUser);
+    
+    require RT::CurrentUser;
+    
+    #Instantiate a user object
+    
+    $Gecos=$ARGV[0];
+
+    #If the current user is 0, then RT will assume that the User object
+    #is that of the currentuser.
+
+    $CurrentUser = new RT::CurrentUser();
+    $CurrentUser->LoadByGecos($Gecos);
+    
+    unless ($CurrentUser->Id) {
+      $RT::Logger->debug("No user with a unix login of '$Gecos' was found. ");
+	}
+
+
+
+    if ( !$CurrentUser->Id ) {
+        print
+"No valid RT user found. RT cvs handler disengaged. Please consult your RT administrator.\n";
+        return;
+    }
+
+    my (@commands) = find_commands( \@LogMessage );
+
+    my ( @tickets, @errors );
+
+    my ($reply) = ActOnPseudoHeaders( $CurrentUser, \@LogMessage, 
+ConstructTicketHash($CurrentUser, @commands ));
+
+
+
+    print "$reply\n" if ($reply);
+    print join ( "\n", @errors );
+    print "\n";
+
+}
+
+# }}}
+
+# {{{ sub find_commands
+
+sub find_commands {
+    my $lines = shift;
+    my (@pseudoheaders);
+
+    while ( my $line = shift @{$lines} ) {
+        next if $line =~ /^\s*?$/ and not scalar(@pseudoheaders);
+        if ( $line =~ /^(RT-)?[^\s():]+:/i ) {
+            push ( @pseudoheaders, $line );
+        }
+
+        #If we find a line that's not a command, get out.
+        else {
+            unshift ( @{$lines}, $line );
+            last;
+        }
+    }
+
+    return (@pseudoheaders);
+
+}
+
+# }}}
+
+# {{{ sub ActOnPseudoHeaders
+
+=item ActOnPseudoHeaders $PseudoHeaders
+
+
+
+=cut
+
+sub ActOnPseudoHeaders {
+my $CurrentUser = shift;
+	my @LogMessage = @{shift(@_)};
+my (%actions) = (@_);
+my $ResultsMessage = '';
+my $Ticket         = RT::Ticket->new($CurrentUser);
+    my $message = new MIME::Entity;
+    $message->build(
+        From    => $CurrentUser->EmailAddress,
+        Subject => 'SVN Commit',
+        Data    => \@LogMessage
+    );
+
+foreach my $ticket_id (keys %actions) {
+my ($val);
+my $msg = '';
+	my $send_message = 1;
+my %ticket_actions = %{$actions{$ticket_id}};
+
+$ResultsMessage .= ">>> $ticket_id\n";
+
+if ($ticket_id eq 'new') {
+my %params = (
+MIMEObj => $message,
+	);
+$send_message = 0;
+my @possible_params = qw(
+id Cc AdminCc Requestor
+Subject Queue Owner
+);
+foreach (@possible_params) {
+$params{$_} = $ticket_actions{lc $_}
+if (exists $ticket_actions{lc $_}) ;
+delete $ticket_actions{lc $_};
+}
+my ($id, $txn, $error ) = $Ticket->Create(%params);
+unless ($id) {
+$ResultsMessage .= "Couldn't create ticket:$error\n";
+next ;
+}
+} else {
+		                $val = $Ticket->Load($ticket_id);
+unless ($val) {
+$ResultsMessage .=
+"ERROR: Couldn't load ticket '$ticket_id': $msg.\n"
+. "Aborting to avoid unintended ticket modifications.\n"
+. "The following commands were not proccessed:\n\n"
+. join ( "\n", PrintActions(%ticket_actions) );
+return ($ResultsMessage);
+}
+}
+unless ( $Ticket->Id ) {
+$ResultsMessage .= "No Ticket specified. Aborting ticket "
+. "modifications\n\n"
+. "The following commands were not proccessed:\n\n"
+. join ( "\n", PrintActions(%ticket_actions) );
+return ($ResultsMessage);
+}
+$ResultsMessage .= "Ticket " . $Ticket->Id . " loaded\n";
+
+
+
+# Deal with the basics
+foreach my $command (keys %ticket_actions) {
+my $args = $ticket_actions{$command};
+	$ResultsMessage .= ">>>$command\n";
+
+if ( $command =~ /^(Subject|Owner|Status|Queue)$/i ) {
+my $method = 'Set' . ucfirst( lc($1) );
+( $val, $msg ) = $Ticket->$method($args);
+}
+
+# Deal with the dates
+elsif ( $command =~ /^(due|starts|started|resolved)$/i ) {
+my $method = 'Set' . ucfirst( lc($1) );
+my $date   = new RT::Date($CurrentUser);
+$date->Set( Format => 'unknown', Value => $args );
+( $val, $msg ) = $Ticket->$method( $date->ISO );
+}
+
+# Deal with the watchers
+elsif ( $command =~ /^(requestor|requestors|cc|admincc)$/i ) {
+$msg = "";
+foreach (@{$args}) {
+my $operator = "+";
+my ($type);
+if (  /^(\+|\-)(.*)$/ ) {
+$operator = $1;
+$_     = $2;
+}
+$type = 'Requestor' if ( $command =~ /^requestor/i );
+$type = 'Cc'        if ( $command =~ /^cc/i );
+$type = 'AdminCc'   if ( $command =~ /^admincc/i );
+
+if ( $operator eq '+' ) {
+( $val, $msg ) = $Ticket->AddWatcher(
+Type  => $type,
+Email => $_
+);
+} elsif ( $operator eq '-' ) {
+( $val, $msg ) = $Ticket->DeleteWatcher(
+Type  => $type,
+Email => $_
+);
+}
+}
+}
+
+# {{{ Deal with ticket keywords
+else {
+
+#Default is to add keywords
+my $op = '+';
+my $ks = $Ticket->QueueObj->KeywordSelect($command);
+
+unless ( $ks->Id ) {
+$ResultsMessage .= "ERROR: couldn't find a keyword "
+. "selection matching '$command'\n";
+next;
+}
+
+if ( $args =~ /^(\-|\+)(.*)$/ ) {
+$op   = $1;
+$args = $2;
+}
+my $kids = $ks->KeywordObj->Descendents;
+
+#TODO: looping is lossy.
+foreach my $kid ( keys %{$kids} ) {
+next unless ( $kids->{$kid} =~ /^$args$/i );
+if ( $op eq '-' ) {
+( $val, $msg ) = $Ticket->DeleteKeywordA(
+KeywordSelect => $ks->id,
+Keyword       => $kid
+);
+}
+elsif ( $op eq '+' ) {
+( $val, $msg ) = $Ticket->AddKeyword(
+KeywordSelect => $ks->id,
+Keyword       => $kid
+);
+}
+else {
+$msg = "'$op' is not a valid operator.\n";
+}
+
+}
+}
+
+# }}}
+
+$ResultsMessage .= $msg . "\n";
+}
+if ($send_message) {
+if ( $LogMessage[0] =~ /^(comment|private)$/ ) {
+( $val, $msg ) = $Ticket->Comment( MIMEObj => $message );
+}
+else {
+( $val, $msg ) = $Ticket->Correspond( MIMEObj => $message );
+}
+}
+}
+
+return ($ResultsMessage);
+
+}
+
+# }}}
+#{{{
+sub ConstructTicketHash {
+  my ($user, @PseudoHeaders) = (@_);
+  my %Actions;
+  my $ticket_action;
+my $email = $user->EmailAddress;
+  foreach my $action (@PseudoHeaders) {
+    if ( $action =~ /^(RT-)?(.*?):\s*(.*?)\s*$/i ) {
+      my $command = $2;
+      my $args    = $3;
+      
+      if ( $command =~ /^ticket$/i ) {
+	unless (exists $Actions{$args}) {
+	  $Actions{$args} = {
+			     status => 'review',
+			     requestor=> [],
+			     cc => [],
+			     admincc => [],
+	owner => $user->Id
+			     };
+	}
+	if ($args eq 'new') {
+	  push @{$Actions{$args}{Requestor}}, $email;
+	$Actions{$args}{queue} = "krb5";
+	}
+	$ticket_action = $Actions{$args};
+	next;
+	}
+      if ($command =~ /Cc|Requestors?|AdminCc/i) {
+	$command =~ s/[Rr]equesters/Requestor/;
+	push @{$ticket_action->{lc($command)}}, $args;
+      } else {
+	$ticket_action->{lc($command)} = $args;
+	}
+    }
+  }
+  return (%Actions);
+  }
+			     
+# {{{ sub untaint 
+sub untaint {
+    my $val = shift;
+
+    if ( $val =~ /^([-\#\/\w.]+)$/ ) {
+        $val = $1;    # $data now untainted
+    }
+    else {
+        die "Bad data in $val";    # log this somewhere
+    }
+    return ($val);
+}
+
+# }}}
+#{{{
+sub PrintActions {
+
+# not implemented
+}
+#}}}
+
+#Clean out all the nasties from the environment
+CleanEnv();
+
+#Load etc/config.pm and drop privs
+LoadConfig();
+
+#Drop setgid permissions
+RT::DropSetGIDPermissions();
+rt_handler(<STDIN>);
