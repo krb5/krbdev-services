@@ -68,7 +68,13 @@ ConstructTicketHash($CurrentUser, @commands ));
 
 sub find_commands {
     my $lines = shift;
-    my (@pseudoheaders);
+    my (@pseudoheaders, @extra);
+
+    # Pull out the extra SVN metadata (we'll put it back when we're done.)
+    while ( my $line = pop @{$lines} ) {
+	unshift ( @extra, $line );
+	last if ( $line eq "\n" );
+    }
 
     #Look for headers at the end of the log message (new convention).
     while ( my $line = pop @{$lines} ) {
@@ -84,6 +90,8 @@ sub find_commands {
     }
 
     if ( scalar(@pseudoheaders) ) {
+	pop ( @{$lines} ) if $lines->[$#{$lines}] eq "\n";
+	push ( @{$lines}, @extra );
 	return (@pseudoheaders);
     }
 
@@ -101,6 +109,7 @@ sub find_commands {
         }
     }
 
+    push ( @{$lines}, @extra );
     return (@pseudoheaders);
 
 }
