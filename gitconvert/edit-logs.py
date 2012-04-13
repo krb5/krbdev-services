@@ -57,8 +57,8 @@ def edit_msg(msg):
         (len(lines) == 1 or lines[1] == '')):
         lines[0] = lines[0][:-1]
 
-    # End the log message with a newline, even if the old one didn't.
-    return string.join(lines, '\n') + '\n'
+    # Don't end the log message with a newline; git-svn will add two.
+    return string.join(lines, '\n')
 
 
 if len(sys.argv) != 2:
