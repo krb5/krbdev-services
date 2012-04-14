@@ -89,17 +89,20 @@ git for-each-ref --format='%(refname)' refs/heads/tags | cut -d / -f 4 | \
 # Remove unwanted tags.
 git tag -d `cat "$datadir/unwanted-tags"` > /dev/null
 
+# The amb/referrals branch, and the referrals branch derived from it,
+# placed a copy of trunk in a subdirectory.  Fix that, and also fix
+# the ancestry of the base commit (git-svn chooses two parents, one
+# the empty r18406 and the other r18199 because of some svk metadata).
 echo "Filtering referrals branches"
-git filter-branch --tree-filter 'mv trunk/* . && rmdir trunk' -- \
+refbase=`git rev-parse referrals~72`
+git filter-branch --tree-filter 'mv trunk/* . && rmdir trunk' \
+    --parent-filter 'test $GIT_COMMIT = '$refbase' &&
+        echo "-p :/trunk@18404" || cat' -- \
     --first-parent referrals amb/referrals --not referrals~73 > /dev/null
-
-# The above command makes the branch contents more consistent with
-# other branches, but doesn't make the branch points look normal.  If
-# we come up with something better after the conversion, we can
-# probably rewrite those branches again since no one is likely to have
-# checkouts of them.
+git update-ref -d refs/original/refs/heads/amb/referrals
+git update-ref -d refs/original/refs/heads/referrals
 
 echo "Packing repository"
-git gc --quiet --aggressive
+git gc --quiet --aggressive --prune=now
 
 # TODO: install hook scripts
