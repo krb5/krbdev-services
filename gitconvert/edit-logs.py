@@ -17,8 +17,8 @@ import subprocess
 import sys
 import tempfile
 
-header_re = re.compile('([\w-]+):\s*(.*)')
-newline_re = re.compile('\r\n|\r|\n')
+header_re = re.compile(r'([\w-]+):\s*(.*)')
+newline_re = re.compile(r'\r\n|\r|\n')
 def edit_msg(msg):
     # Split the message into lines.  This will translate CR and CRLF
     # line endings to LF when we re-join the lines at the end.
