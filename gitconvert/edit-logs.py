@@ -32,7 +32,8 @@ def edit_msg(msg):
             break
         if m.group(1).lower() == 'subject':
             subject = m.group(2)
-        headers.append(lines[0])
+        else:
+            headers.append(lines[0])
         del lines[0]
 
     # Strip leading and trailing blank lines.
@@ -41,9 +42,8 @@ def edit_msg(msg):
     while len(lines) > 0 and lines[-1] == '':
         del lines[-1]
 
-    # Put RT headers back at the end of the message, separated by a
-    # blank line (but omit the blank line if there's nothing but
-    # headers).
+    # Put RT headers (except subject) back at the end of the message,
+    # separated by a blank line (unless there's nothing but headers).
     if headers:
         lines = lines + (lines and ['']) + headers
 
