@@ -1,0 +1,73 @@
+#!/usr/bin/python
+
+# Hook script to process commit log through rt-cvsgate on
+# krbdev.mit.edu.  Invoked from post-receive with a commit hash.
+
+from hookutils import *
+import re
+import shlex
+
+ssh_cmd = run(['git', 'config', 'hooks.rt-ssh-cmd'])[0]
+if not ssh_cmd:
+    sys.exit(0)
+
+header_re = re.compile(r'([\w-]+):\s*(.*)')
+new_ticket_re = re.compile(r'^(RT-)?ticket:\s*(\d+)\s*\(new\)', re.IGNORECASE)
+subject_re = re.compile(r'^(RT-)?subject:', re.IGNORECASE)
+
+# Start with the log message for the commit.
+rev = sys.argv[1]
+msg = run(['git', 'show', '-s', '--format=%B', rev])
+
+# Grab RT headers from the end (removing any trailing blanks before and after).
+is_new_ticket = False
+has_subject = False
+while len(msg) > 0 and msg[-1] == '':
+    del msg[-1]
+headers = []
+while len(msg) > 0:
+    if not header_re.match(msg[-1]):
+        break
+    line = msg.pop()
+    if subject_re.match(line):
+        has_subject = True
+    m = new_ticket_re.match(line)
+    if m:
+        # Translate ticket: NNNN (new) to ticket: new, id: NNNN
+        is_new_ticket = True
+        headers.append('id: %s' % m.group(2))
+        headers.append('ticket: new')
+    else:
+        headers.append(line)
+headers.reverse()
+while len(msg) > 0 and msg[-1] == '':
+    del msg[-1]
+
+# No need to talk to rt-cvsgate if there are no RT headers.
+if not headers:
+    sys.exit(0)
+
+# Add a subject header for new tickets.
+if is_new_ticket and not has_subject:
+    subject = run(['git', 'show', '-s', '--format=%s', rev])[0]
+    headers.append('subject: ' + subject)
+
+# Move the RT headers to the beginning.
+msg = headers + [''] + msg
+
+# Add metadata about the commit.
+author = run(['git', 'show', '-s', '--format=%an <%ae>', rev])[0]
+committer = run(['git', 'show', '-s', '--format=%cn <%ce>', rev])[0]
+msg.append('')
+msg.append(commit_url(rev))
+msg.append('Author: ' + author)
+if committer != author:
+    msg.append('Committer: ' + committer)
+msg.append('Commit: ' + rev)
+msg.extend(run(['git', 'diff-tree', '--no-commit-id', '--root', '--stat',
+                '-M', '--cc', rev]))
+
+# Feed the modified message to rt-cvsgate.
+user = run(['id', '-un'])[0]
+p = subprocess.Popen(shlex.split(ssh_cmd) + [user], stdin=subprocess.PIPE)
+p.communicate(str.join('\n', msg) + '\n')

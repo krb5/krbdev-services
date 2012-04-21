@@ -1,0 +1,89 @@
+#!/usr/bin/python
+
+# Hook script to generate email about new commits or other significant
+# events.  Invoked from post-receive with one of the following
+# argument templates:
+#
+#   newbranch <branchname>
+#   newtag <tagname> <tagrev>
+#   commit <branchname> <rev>
+#   norev-update <branchname> <oldrev> <newrev>
+#   toomany <branchname> <number of revs>
+
+from hookutils import *
+
+max_diff_lines = 5000
+list_addr = run(['git', 'config', 'hooks.mailinglist'])[0]
+reponame = run(['git', 'config', 'hooks.reponame'])[0]
+
+def send(subject, body):
+    if list_addr == '-':
+        print '*** Simulated email'
+        print "Subject: " + subject
+        print
+        print str.join('\n', body)
+        print '*** End simulated email'
+        return
+    p = subprocess.Popen(['sendmail', '-t'], stdin=subprocess.PIPE)
+    p.communicate('To: %s\nSubject: %s\n\n' % (list_addr, subject) +
+                  str.join('\n', body) + '\n')
+
+
+def notify_new_branch(branchname):
+    subject = '%s: new branch %s' % (reponame, branchname)
+    msg = ['A new branch "%s" has been created in the %s repository.' %
+           (branchname, reponame)]
+    send(subject, msg)
+
+
+def notify_new_tag(tagname, rev):
+    subject = '%s: new tag %s' % (reponame, tagname)
+    if run(['git', 'cat-file', '-t', rev])[0] == 'commit':
+        msg = ['A new lightweight tag "%s" has been created in the %s' %
+               (tagname, reponame), 'repository for the following commit:', '']
+    else:
+        msg = []
+    msg.extend(run(['git', 'show', '-s', 'refs/tags/%s' % tagname]))
+    send(subject, msg)
+
+
+def notify_commit(branchname, rev):
+    subject = '%s commit' % reponame
+    if branchname != 'master':
+        subject += ' [%s]' % branchname
+    subject += ': ' + run(['git', 'show', '-s', '--format=%s', rev])[0]
+    msg = [commit_url(rev)]
+    msg.extend(run(['git', 'show', '--stat', rev]))
+    diff = run(['git', 'diff-tree', '--no-commit-id', '--root', '-M', '--cc',
+                rev])
+    if len(diff) > max_diff_lines:
+        diff = ['Diff larger than 5000 lines; suppressing.']
+    send(subject, msg + [''] + diff)
+
+
+def notify_norev_update(branchname, oldrev, newrev):
+    subject = '%s: %s branch head update' % (reponame, branchname)
+    msg = ['The head of the branch "%s" has been updated from' % branchname,
+           '%s to' % oldrev, '%s,' % newrev,
+           'but all of the new revisions are present on existing branches.']
+    send(subject, msg)
+
+
+def notify_toomany(branchname, numrevs):
+    subject = '%s [%s]: %s commits' % (reponame, branchname, numrevs)
+    msg = ['Notifications and RT processing has been suppressed for these',
+           'commits.']
+    send(subject, msg)
+
+
+ntype = sys.argv[1]
+if ntype == 'newbranch':
+    notify_new_branch(sys.argv[2])
+elif ntype == 'newtag':
+    notify_new_tag(sys.argv[2], sys.argv[3])
+elif ntype == 'commit':
+    notify_commit(sys.argv[2], sys.argv[3])
+elif ntype == 'norev-update':
+    notify_norev_update(sys.argv[2], sys.argv[3], sys.argv[4])
+elif ntype == 'toomany':
+    notify_toomany(sys.argv[2], sys.argv[3])

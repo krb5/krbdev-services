@@ -1,0 +1,64 @@
+#!/usr/bin/python
+
+# Master post-push hook for krb5 shared git repository.  In this
+# script, we break down the push into branch creations, tag creations,
+# and commits added to a branch.  (The update hook prevents branch or
+# tag deletions, tag replacements, and non-fast-forward updates to
+# branches.)  We invoke the notify hook for each interesting event and
+# the rt hook for each new commit.  Finally, we invoke the push hook
+# to update mirrors.
+
+from hookutils import *
+
+# If we see more than this many revs for a single ref, avoid spamming
+# RT or the notification list.
+max_revs_per_ref = 50
+
+# Run a script from the hooks directory with the specified arguments.
+def run_hook(name, args=[]):
+    subprocess.call([hookdir_file(name)] + args)
+
+# Gather the input lines into a list of (oldrev, newrev, refname) tuples.
+inputs = []
+for line in sys.stdin:
+    inputs.append(line.split())
+
+# Make a list of branch heads as they were before this push, to exclude from
+# rev-list when getting the new revisions of a branch.
+branches = run(['git', 'for-each-ref', '--format=%(refname)', 'refs/heads/'])
+for oldrev, newrev, refname in inputs:
+    if refname in branches:
+        branches.remove(refname)
+    if refname.startswith('refs/heads/') and oldrev != no_rev:
+        branches.append(oldrev)
+
+revs_seen = set()
+for oldrev, newrev, refname in inputs:
+    if refname.startswith('refs/heads/'):
+        shortname = refname[11:]
+        if oldrev == no_rev:
+            run_hook('post-receive-notify', ['newbranch', shortname])
+        revs = run(['git', 'rev-list', newrev, '--not'] + branches)
+        if len(revs) > max_revs_per_ref:
+            run_hook('post-receive-notify',
+                     ['toomany', shortname, str(len(revs))])
+            continue
+        nrevs = 0
+        for rev in revs[::-1]:
+            if rev not in revs_seen:
+                revs_seen.add(rev)
+                run_hook('post-receive-notify', ['commit', shortname, rev])
+                run_hook('post-receive-rt', [rev])
+                nrevs += 1
+        if nrevs == 0 and oldrev != no_rev:
+            # Branch was fast-forwarded along an existing branch or another
+            # branch in the same push.  Make sure we say something.
+            run_hook('post-receive-notify',
+                     ['norev-update', shortname, oldrev, newrev])
+    elif refname.startswith('refs/tags/'):
+        shortname = refname[10:]
+        # We only expect newly created tags, but sanity-check newrev.
+        if newrev != no_rev:
+            run_hook('post-receive-notify', ['newtag', shortname, newrev])
+
+run_hook('post-receive-push')

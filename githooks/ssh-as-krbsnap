@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Run ssh using the krbsnap@drugstore.mit.edu key, relying as little
+# as possible on the user's homedir.  (ssh will still stat and
+# possibly try to create ~/.ssh no matter what we do, but it will
+# continue on even if it fails, and with -q won't even print a
+# diagnostic.)
+
+exec ssh -2q -i $GIT_DIR/hooks/krbsnap_key -F/dev/null \
+    -oStrictHostKeyChecking=no -oPreferredAuthentications=publickey \
+    -oUserKnownHostsFile=/dev/null -oUserKnownHostsFile2=/dev/null "$@"

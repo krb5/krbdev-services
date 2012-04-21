@@ -1,0 +1,3 @@
+#!/bin/sh
+
+GIT_SSH=$GIT_DIR/hooks/ssh-as-krbsnap git push github-krb5

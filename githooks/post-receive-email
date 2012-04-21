@@ -1,0 +1,6 @@
+#!/usr/bin/python
+
+# Requires Python 2.4, which is what we have on drugstore.
+
+import sys
+import subprocess
