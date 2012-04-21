@@ -1,0 +1,170 @@
+#!/usr/bin/python
+
+# Update hook for krb5 shared git repository.  Prohibits:
+# * Updates to existing tags
+# * Deletions of any ref
+# * Creation of refs which aren't tags or branches
+# * Whitespace errors in a commit diff
+# * Commit author doesn't match mapping for user in hooks/authors
+# * Empty commit message
+# * Commit message which doesn't start with a <=50-character summary
+# * Commit message summary line ending with period
+# * Commit message beginning with something looking like an RT header
+# * Commit message containing 'ticket: new' instead of 'ticket: NNNN (new)'
+
+from hookutils import *
+import re
+
+error_count = 0
+def err(msg, rev=None):
+    global error_count
+    if rev:
+        msg += " (commit %s)" % rev
+    sys.stderr.write(msg + '\n')
+    error_count += 1
+
+
+def fatal(msg):
+    sys.stderr.write(msg + '\n')
+    sys.stderr.write('See http://k5wiki.kerberos.org/wiki/Coding_style/' +
+                     'Version_control_practices\n')
+    sys.exit(1)
+
+
+# Return an error string if rev has a bad log message.
+bad_new_ticket_re = re.compile(r'^(RT-)?ticket:\s*new$', re.IGNORECASE)
+header_re = re.compile(r'([\w-]+):\s*(.*)')
+def check_message(rev, msg):
+    if len(msg) == 0 or msg[0] == '':
+        err('Message is empty or begins with blank line', rev)
+        return
+    if len(msg[0]) > 50 or (len(msg) > 1 and msg[1] != ''):
+        err('Message must begin with summary (50 characters or less)', rev)
+    if msg[0].endswith('.'):
+        err('Summary line must not end with period', rev)
+    if header_re.match(msg[0]):
+        err('Message must not begin with RT header', rev)
+    is_new_ticket = False
+    has_id = False
+    for line in msg[::-1]:
+        if bad_new_ticket_re.match(line):
+            err('Use "ticket: NNNN (new)" (allocate with "ssh git.mit.edu ' +
+                'krb5-rd-id")', rev)
+
+
+# Return true if rev:filename shouldn't have tabs in it based on a modeline.
+modeline_re = re.compile(r'-\*-\s*(.*[^\s]+)\s*-\*-')
+def modeline_disallows_tabs(rev, filename):
+    p = subprocess.Popen(['git', 'show', rev + ':' + filename],
+                         stdout=subprocess.PIPE)
+    nlines = 0
+    for line in p.stdout:
+        m = modeline_re.search(line)
+        if m:
+            if 'indent-tabs-mode: nil' in m.group(1):
+                return True
+            break
+        nlines = nlines + 1
+        if nlines == 5:
+            break
+    p.terminate()
+    return False
+
+
+# Check for whitespace violations in rev's diff, unless msg suppresses it.
+button_re = re.compile(r'^\s*bigredbutton:\s*whitespace\s*$', re.IGNORECASE)
+chunk_header_re = re.compile(r'^@@ -\d+(,(\d+))? \+(\d+)(,(\d+))? @@$')
+def check_whitespace(rev, msg):
+    # Check if whitespace check is turned off by commit message.
+    for line in msg:
+        if button_re.match(line):
+            return
+
+    # git will detect trailing whitespace and spaces before tabs in
+    # indents.
+    if subprocess.call(['git', 'diff-tree', '--no-commit-id', '--root',
+                        '--check', rev]) != 0:
+        err('Whitespace issues detected by git diff-tree --check', rev)
+
+    # Look for tabs added to files which aren't supposed to have tabs, and
+    # for missing newlines at the end of files.
+    diff = run(['git', 'diff-tree', '--no-commit-id', '--root', '-M', '--cc',
+                rev])
+    deny_tabs = False
+    old_count, new_count, lineno = 0, 0, 0
+    prev_line_type = None
+    filename = '(no filename)'
+    for line in diff:
+        if not line:
+            continue
+        if line.startswith('\\ No newline'):
+            # These indicators aren't included in chunk line counts,
+            # so check for them outside of chunk/non-chunk processing.
+            if prev_line_type == '+':
+                err('%s:%d: missing newline at end of file' %
+                    (filename, lineno - 1))
+        elif old_count > 0 or new_count > 0:
+            # We're in a chunk.
+            if line[0] == '+' and '\t' in line and deny_tabs:
+                    err('%s:%d: tab character(s) added:\n%s' %
+                        (filename, lineno, line))
+            if line[0] in ('+', ' '):
+                new_count = new_count - 1
+                lineno = lineno + 1
+            if line[0] in ('-', ' '):
+                old_count = old_count - 1
+            prev_line_type = line[0]
+        else:
+            # We're not reading a chunk.
+            if line.startswith('+++ b/'):
+                filename = line[6:]
+                deny_tabs = modeline_disallows_tabs(rev, filename)
+            m = chunk_header_re.match(line)
+            if m:
+                old_count = int(m.group(2) or '1')
+                lineno = int(m.group(3))
+                new_count = int(m.group(5) or '1')
+
+
+author_re = re.compile(r'^([a-z]+)\s*=\s*(.*)$')
+def check_committer(rev, expected):
+    committer = run(['git', 'show', '-s', '--format=%cn <%ce>', rev])[0]
+    if committer != expected:
+        err('Committer %s does not match expected %s' % (committer, expected),
+            rev)
+
+
+refname, oldrev, newrev = sys.argv[1:]
+
+# Look up username in the authors file.
+expected_committer = None
+user = run(['id', '-un'])[0]
+f = open(hookdir_file('authors'), 'r')
+for line in f:
+    m = author_re.match(line)
+    if m and m.group(1) == user:
+        expected_committer = m.group(2)
+f.close()
+if not expected_committer:
+    fatal('User %s unrecognized; contact mitkc-staff@mit.edu' % user)
+
+# receive.denyDeletes experimentally only applies to branches, so
+# check for all ref deletions in this hook.
+if newrev == no_rev:
+    fatal('Deleting refs is not allowed')
+
+if refname.startswith('refs/heads/'):
+    # receive.denyNonFastForwards will prevent non-ff updates.
+    for rev in run(['git', 'rev-list', newrev, '--not', '--all'])[::-1]:
+        msg = run(['git', 'show', '-s', '--format=%B', rev])
+        check_message(rev, msg)
+        check_whitespace(rev, msg)
+        check_committer(rev, expected_committer)
+elif refname.startswith('refs/tags/'):
+    if oldrev != no_rev:
+        fatal('Changing tags is not allowed')
+else:
+    fatal('Non-branch, non-tag refname is not allowed')
+
+if error_count > 0:
+    fatal('%d errors detected' % error_count)
