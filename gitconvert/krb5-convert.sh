@@ -123,6 +123,8 @@ git config core.logAllRefUpdates true
 git config gc.reflogexpire never
 git config gc.reflogexpireunreachable never
 
+git config core.sharedRepository group
+
 # Install hook scripts.
 rm hooks/*
 cp $datadir/../githooks/* hooks
