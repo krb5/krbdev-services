@@ -108,7 +108,7 @@ git gc --quiet --aggressive --prune=now
 echo "Configuring repository"
 # Configure github-krb5 remote.
 echo "Master krb5 git repository" > description
-git remote add github-krb5 git://github.com/krb5/krb5
+git remote add github-krb5 git@github.com:krb5/krb5.git
 
 # Configure variables used by hook scripts.
 git config remote.github-krb5.mirror true
