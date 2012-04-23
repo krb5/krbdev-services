@@ -114,7 +114,7 @@ git remote add github-krb5 git://github.com/krb5/krb5
 git config remote.github-krb5.mirror true
 git config hooks.mailinglist cvs-krb5@mit.edu
 git config hooks.reponame krb5
-git config hooks.rt-ssh-cmd "/git/krb5/hooks/ssh-as-krbsnap rtcvs@krbdev-r1.mit.edu /var/rt2/bin/rt-cvsgate"
+git config hooks.rt-ssh-cmd "/git/krb5.git/hooks/ssh-as-krbsnap rtcvs@krbdev-r1.mit.edu /var/rt2/bin/rt-cvsgate"
 
 # Configure variables controlling git-receive-pack behavior.
 git config receive.fsckObjects true

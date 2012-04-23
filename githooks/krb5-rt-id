@@ -3,5 +3,5 @@
 # Developers run this as "ssh git.mit.edu krb5-rt-id" (uses a link
 # from /etc/smrsh) to allocate a ticket ID.
 
-GIT_DIR=/git/krb5 exec /git/krb5/hooks/ssh-as-krbsnap rtcvs@krbdev-r1.mit.edu \
-    /var/rt2/bin/rt-reserve-ticket
+GIT_DIR=/git/krb5.git exec /git/krb5.git/hooks/ssh-as-krbsnap \
+    rtcvs@krbdev-r1.mit.edu /var/rt2/bin/rt-reserve-ticket
