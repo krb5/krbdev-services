@@ -34,11 +34,13 @@ while len(msg) > 0:
     m = new_ticket_re.match(line)
     if m:
         # Translate ticket: NNNN (new) to ticket: new, id: NNNN
+        # (headers will be reversed later, so put them in backwards).
         is_new_ticket = True
         headers.append('id: %s' % m.group(2))
         headers.append('ticket: new')
     else:
         headers.append(line)
+# Pulling headers from the end reverses the order, so undo that.
 headers.reverse()
 while len(msg) > 0 and msg[-1] == '':
     del msg[-1]
