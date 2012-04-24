@@ -106,12 +106,14 @@ echo "Packing repository"
 git gc --quiet --aggressive --prune=now
 
 echo "Configuring repository"
-# Configure github-krb5 remote.
 echo "Master krb5 git repository" > description
-git remote add github-krb5 git@github.com:krb5/krb5.git
+git remote add --mirror=push github-krb5 git@github.com:krb5/krb5.git
+git config core.sharedRepository group
+git config core.logAllRefUpdates true
+git config gc.reflogexpire never
+git config gc.reflogexpireunreachable never
 
 # Configure variables used by hook scripts.
-git config remote.github-krb5.mirror true
 git config hooks.mailinglist cvs-krb5@mit.edu
 git config hooks.reponame krb5
 git config hooks.rt-ssh-cmd "/git/krb5.git/hooks/ssh-as-krbsnap rtcvs@krbdev-r1.mit.edu /var/rt2/bin/rt-cvsgate"
@@ -119,11 +121,6 @@ git config hooks.rt-ssh-cmd "/git/krb5.git/hooks/ssh-as-krbsnap rtcvs@krbdev-r1.
 # Configure variables controlling git-receive-pack behavior.
 git config receive.fsckObjects true
 git config receive.denyNonFastForwards true
-git config core.logAllRefUpdates true
-git config gc.reflogexpire never
-git config gc.reflogexpireunreachable never
-
-git config core.sharedRepository group
 
 # Install hook scripts.
 rm hooks/*
