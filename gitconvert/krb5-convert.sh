@@ -117,6 +117,8 @@ git config gc.reflogexpireunreachable never
 git config hooks.mailinglist cvs-krb5@mit.edu
 git config hooks.reponame krb5
 git config hooks.rt-ssh-cmd "/git/krb5.git/hooks/ssh-as-krbsnap rtcvs@krbdev-r1.mit.edu /var/rt2/bin/rt-cvsgate"
+git config hooks.commit-url-prefix "https://github.com/krb5/krb5/commit/"
+git config hooks.push-to github-krb5
 
 # Configure variables controlling git-receive-pack behavior.
 git config receive.fsckObjects true

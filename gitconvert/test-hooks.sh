@@ -14,8 +14,9 @@ cp $datadir/test-cvsgate hooks
 git config hooks.mailinglist -
 git config hooks.reponame testrepo
 git config hooks.rt-ssh-cmd $wd/central/hooks/test-cvsgate
-git remote add github-krb5 $wd/mirror
-git config remote.github-krb5.mirror true
+git config hooks.commit-url-prefix http://example.com/commit/
+git config hooks.push-to test-mirror
+git remote add --mirror=push test-mirror $wd/mirror
 git config receive.denyNonFastForwards true
 cd ..
 

@@ -10,6 +10,7 @@ import shlex
 ssh_cmd = run(['git', 'config', 'hooks.rt-ssh-cmd'])[0]
 if not ssh_cmd:
     sys.exit(0)
+commit_url_prefix = run(['git', 'config', 'hooks.commit-url-prefix'])[0]
 
 header_re = re.compile(r'([\w-]+):\s*(.*)')
 new_ticket_re = re.compile(r'^(RT-)?ticket:\s*(\d+)\s*\(new\)', re.IGNORECASE)
@@ -61,7 +62,8 @@ msg = headers + [''] + msg
 author = run(['git', 'show', '-s', '--format=%an <%ae>', rev])[0]
 committer = run(['git', 'show', '-s', '--format=%cn <%ce>', rev])[0]
 msg.append('')
-msg.append(commit_url(rev))
+if commit_url_prefix:
+    msg.append(commit_url_prefix + rev)
 msg.append('Author: ' + author)
 if committer != author:
     msg.append('Committer: ' + committer)

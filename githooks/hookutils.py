@@ -16,11 +16,6 @@ def run(args):
     return out.splitlines()
 
 
-# Return a URL where a commit can be viewed.
-def commit_url(rev):
-    return 'https://github.com/krb5/krb5/commit/%s' % rev
-
-
 # Return the path to a file in the hook directory.
 def hookdir_file(name):
     return os.path.join(os.getenv('GIT_DIR'), 'hooks', name)

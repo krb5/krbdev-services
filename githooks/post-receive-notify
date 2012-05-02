@@ -15,6 +15,7 @@ from hookutils import *
 max_diff_lines = 5000
 list_addr = run(['git', 'config', 'hooks.mailinglist'])[0]
 reponame = run(['git', 'config', 'hooks.reponame'])[0]
+commit_url_prefix = run(['git', 'config', 'hooks.commit-url-prefix'])[0]
 
 def send(subject, body):
     if list_addr == '-':
@@ -52,7 +53,9 @@ def notify_commit(branchname, rev):
     if branchname != 'master':
         subject += ' [%s]' % branchname
     subject += ': ' + run(['git', 'show', '-s', '--format=%s', rev])[0]
-    msg = [commit_url(rev)]
+    msg = []
+    if commit_url_prefix:
+        msg.append(commit_url_prefix + rev)
     msg.extend(run(['git', 'show', '--stat', rev]))
     diff = run(['git', 'diff-tree', '--no-commit-id', '--root', '-M', '--cc',
                 rev])

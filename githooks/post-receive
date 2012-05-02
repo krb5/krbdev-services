@@ -14,6 +14,8 @@ from hookutils import *
 # RT or the notification list.
 max_revs_per_ref = 50
 
+push_to = run(['git', 'config', 'hooks.push-to'])[0]
+
 # Run a script from the hooks directory with the specified arguments.
 def run_hook(name, args=[]):
     subprocess.call([hookdir_file(name)] + args)
@@ -61,4 +63,5 @@ for oldrev, newrev, refname in inputs:
         if newrev != no_rev:
             run_hook('post-receive-notify', ['newtag', shortname, newrev])
 
-run_hook('post-receive-push')
+if push_to:
+    run_hook('post-receive-push', [push_to])
