@@ -1,3 +1,9 @@
+mitkc-buildslave-config (0.1.1) lucid; urgency=low
+
+  * Update dependencies
+
+ -- Tom Yu <tlyu@sarnath.mit.edu>  Wed, 02 May 2012 18:05:39 -0400
+
 mitkc-buildslave-config (0.1) unstable; urgency=low
 
   * Initial Release.

@@ -7,6 +7,6 @@ Standards-Version: 3.8.3
 
 Package: mitkc-buildslave-config
 Architecture: all
-Depends: autoconf, bison, build-essential, buildbot, dejagnu, gettext, libssl-dev, openafs-client, openafs-modules-dkms, portmap, python, subversion, tcl-dev, tcsh, ${misc:Depends}
+Depends: autoconf, bison, build-essential, buildbot, dejagnu, doxygen, gettext, git-core, git-svn, libssl-dev, openafs-client, portmap, python, python-cheetah, python-lxml, python-sphinx (>= 1.0.7), subversion, tcl-dev, tcsh, ${misc:Depends}
 Description: MITKC buildbot slave configuration
  Configure an Ubuntu server to be an MIT Kerberos Consortium buildbot slave
