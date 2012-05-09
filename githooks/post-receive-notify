@@ -25,7 +25,7 @@ def send(subject, body):
         print str.join('\n', body)
         print '*** End simulated email'
         return
-    p = subprocess.Popen(['sendmail', '-t'], stdin=subprocess.PIPE)
+    p = subprocess.Popen(['/usr/sbin/sendmail', '-t'], stdin=subprocess.PIPE)
     p.communicate('To: %s\nSubject: %s\n\n' % (list_addr, subject) +
                   str.join('\n', body) + '\n')
 
