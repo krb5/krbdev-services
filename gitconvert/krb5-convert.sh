@@ -114,6 +114,7 @@ git config gc.reflogexpire never
 git config gc.reflogexpireunreachable never
 
 # Configure variables used by hook scripts.
+git config hooks.verbose true
 git config hooks.mailinglist cvs-krb5@mit.edu
 git config hooks.reponame krb5
 git config hooks.rt-ssh-cmd "/git/krb5.git/hooks/ssh-as-krbsnap rtcvs@krbdev-r1.mit.edu /var/rt2/bin/rt-cvsgate"
