@@ -1,0 +1,18 @@
+#!/bin/sh
+set -e
+intname=krb5int.`hostname`
+cd $HOME/krb5
+svn revert -R .
+svn update
+cd src
+util/reconf
+./configure
+make clean
+rm -rf $HOME/$intname
+cov-build --dir $HOME/$intname make all
+cov-analyze --all --disable STACK_USE --dir $HOME/$intname
+cd $HOME
+ssh coverity@krbdev.mit.edu rm -rf $intname
+tar czf - $intname | ssh coverity@krbdev.mit.edu tar xzf -
+ssh coverity@krbdev.mit.edu ". .bash_profile; cov-commit-defects \
+  --datadir /home/coverity/krb5db --product krb5 --user nightly --dir $intname"

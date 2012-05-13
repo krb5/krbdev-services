@@ -1,0 +1,11 @@
+#!/bin/sh
+dir=$HOME/krb5db.backup
+rm -rf $dir.5
+[ -e $dir.4 ] && mv $dir.4 $dir.5
+[ -e $dir.3 ] && mv $dir.3 $dir.4
+[ -e $dir.2 ] && mv $dir.2 $dir.3
+[ -e $dir.1 ] && mv $dir.1 $dir.2
+[ -e $dir.0 ] && mv $dir.0 $dir.1
+mkdir $dir.0
+cd $dir.0
+ssh coverity@krbdev.mit.edu tar -C krb5db.backup -czf - . | tar -xzf -
