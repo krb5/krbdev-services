@@ -1,0 +1,5 @@
+#!/bin/sh
+datadir=$HOME/krb5db
+rm -rf $datadir.backup.old
+[ -e $datadir.backup ] && mv $datadir.backup $datadir.backup.old
+cov-maintain-db --datadir $datadir --backup $datadir.backup

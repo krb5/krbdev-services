@@ -15,19 +15,8 @@ Add to $HOME/.bash_profile or $HOME/.profile:
 cov-install-gui --datadir $HOME/krb5db --product krb5 --password <omitted> \
   --port none --secure-port 60000 --rsa-certificate-path $HOME/server.crt \
   --rsa-key-path $HOME/server.key
-Create $HOME/backup (mode 755) containing, without the indenting spaces:
-  #!/bin/sh
-  datadir=$HOME/krb5db
-  rm -rf $datadir.backup.old
-  [ -e $datadir.backup ] && mv $datadir.backup $datadir.backup.old
-  cov-maintain-db --datadir $datadir --backup $datadir.backup
-Run "crontab -e" and edit to say:
-  PATH=/usr/bin:/bin:/home/coverity/prevent-linux64-4.3.0/bin
-
-  # m h  dom mon dow   command
-  @reboot              cov-start-gui --datadir $HOME/krb5db
-  0   2  *   *   *     $HOME/backup
-Store this file into $HOME/README
+Copy backup from this directory into $HOME/backup (mode 755)
+Run "crontab coverity.krbdev.crontab" in this directory.
 
 Build machine setup (Unix)
 --------------------------
@@ -48,8 +37,8 @@ Run "ssh-keygen -H" and remove .ssh/known_hosts.old
 Run "svn co svn://anonsvn.mit.edu/krb5/trunk krb5"
 Add to $HOME/.bash_profile or $HOME/.profile:
   PATH=${PATH}:/path/to/coverity/bin
-Copy the backup script from below into $HOME/store-backup (mode 755)
-Copy the build script from below into $HOME/build (mode 755)
+Copy store-backup from this directory into $HOME/store-backup (mode 755)
+Copy build from this directory into $HOME/build (mode 755)
 Run "crontab -e" and edit to say:
   PATH=/usr/bin:/bin:/path/to/coverity/bin
 
@@ -57,41 +46,3 @@ Run "crontab -e" and edit to say:
    0  3  *   *   *     $HOME/store-backup >> $HOME/backuplog 2>&1
   30  3  *   *   *     $HOME/build >> $HOME/buildlog 2>&1
 Stagger the build time a bit for different build machines
-Store this file into $HOME/README
-
-store-backup script
--------------------
-
-#!/bin/sh
-dir=$HOME/krb5db.backup
-rm -rf $dir.5
-[ -e $dir.4 ] && mv $dir.4 $dir.5
-[ -e $dir.3 ] && mv $dir.3 $dir.4
-[ -e $dir.2 ] && mv $dir.2 $dir.3
-[ -e $dir.1 ] && mv $dir.1 $dir.2
-[ -e $dir.0 ] && mv $dir.0 $dir.1
-mkdir $dir.0
-cd $dir.0
-ssh coverity@krbdev.mit.edu tar -C krb5db.backup -czf - . | tar -xzf -
-
-build script
-------------
-
-#!/bin/sh
-set -e
-intname=krb5int.`hostname`
-cd $HOME/krb5
-svn revert -R .
-svn update
-cd src
-util/reconf
-./configure
-make clean
-rm -rf $HOME/$intname
-cov-build --dir $HOME/$intname make all
-cov-analyze --all --disable STACK_USE --dir $HOME/$intname
-cd $HOME
-ssh coverity@krbdev.mit.edu rm -rf $intname
-tar czf - $intname | ssh coverity@krbdev.mit.edu tar xzf -
-ssh coverity@krbdev.mit.edu ". .bash_profile; cov-commit-defects \
-  --datadir /home/coverity/krb5db --product krb5 --user nightly --dir $intname"

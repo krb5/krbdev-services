@@ -1,0 +1,5 @@
+PATH=/usr/bin:/bin:/home/coverity/prevent-linux64-4.3.0/bin
+
+# m h  dom mon dow   command
+@reboot              cov-start-gui --datadir $HOME/krb5db
+0   2  *   *   *     $HOME/backup
