@@ -34,7 +34,7 @@ Add $HOME/.ssh/id_rsa.pub to coverity@krbdev.mit.edu:$HOME/.ssh/authorized_keys
 Add coverity@krbdev.mit.edu:/etc/ssh/ssh_host_rsa_key.pub to .ssh/known_hosts
  and prefix it with "krbdev.mit.edu "
 Run "ssh-keygen -H" and remove .ssh/known_hosts.old
-Run "svn co svn://anonsvn.mit.edu/krb5/trunk krb5"
+Run "git clone git://krbdev.mit.edu/git/krb5.git krb5"
 Add to $HOME/.bash_profile or $HOME/.profile:
   PATH=${PATH}:/path/to/coverity/bin
 Copy store-backup from this directory into $HOME/store-backup (mode 755)
