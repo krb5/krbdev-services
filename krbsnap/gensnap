@@ -1,6 +1,6 @@
 #!/bin/sh
 domail=nil
-taglist="trunk:krb5-current branches/krb5-1-6:krb5-1.6-current branches/krb5-1-7:krb5-1.7-current branches/krb5-1-8:krb5-1.8-current branches/krb5-1-9:krb5-1.9-current branches/krb5-1-10:krb5-1.10-current"
+taglist="master:krb5-current krb5-1.8:krb5-1.8-current krb5-1.9:krb5-1.9-current krb5-1.10:krb5-1.10-current"
 logfile=log
 errsto=krbcore@mit.edu
 mailto=krb5-snapshot@mit.edu
@@ -9,18 +9,12 @@ exec > $logfile 2>&1
 
 > errors
 
-repos=file:///afs/athena.mit.edu/astaff/project/krbdev/svn/krb5
+repos=file:///home/krbsnap/krb5.git
+# Share git objects because it's a local repository
+shareopt=-s
 
-#/bin/athena/attach -q -n -h gnu outland krbdev svn
-
-#CVS_SERVER=/var/ops/bin/cvs
-#export CVS_SERVER
-
-#PATH=/mit/krbdev/bin:/mit/svn/bin:/usr/local/bin:/bin/athena:/usr/athena/bin:/usr/bin:/usr/ccs/bin:/usr/ucb:/bin:/mit/gnu/bin:/mit/outland/bin
-#export PATH
 PATH=/home/krbsnap/snap/path:$PATH export PATH
 
-#kinit -k -t keytab.daemon daemon/`hostname`
 kinit -k -t krbsnap.keytab krbsnap
 
 for i in $taglist; do 
@@ -34,15 +28,17 @@ for i in $taglist; do
     mkrellog=mkrel.$dirbase.log
     if [ -d $work ]; then :;
     else
-	echo "initializing $work..."
-	if (mkdir $work && svn checkout $repos/$tag $work) \
+	echo "Initializing $work..."
+	if (git clone -q -n $shareopt $repos $work && \
+	    cd $work && git reset --hard -q origin/$tag) \
 	    > $initlog 2>&1; then :;
 	else
 	    (echo "errors for init of $work"; cat $initlog) >> $errors
 	fi
     fi
-    echo "executing svn update for $dirbase..."
-    if (cd $work && svn update) \
+    echo "Updating $dirbase..."
+    if (cd $work && git fetch -q && \
+	git log --pretty=oneline HEAD..origin/$tag) \
 	> $updlog 2> $upderrs; then
 	cat $updlog
 	if [ -n "`cat $upderrs`" ]; then
@@ -53,10 +49,11 @@ for i in $taglist; do
 	else
 	    dodiff=nil
 	fi
-	if grep -s '^Updated' $updlog > /dev/null 2>&1 \
+	if [ -n "`(cd $work && git rev-list HEAD..origin/$tag)`" ] \
 	    || [ "$dodiff" = nil ]; then
 	    if [ "$dodiff" = t ]; then
 		rm -rf $olddir
+		(cd $work && git checkout -q origin/$tag)
 	    fi
 	    if [ -d $dirbase ]; then mv $dirbase $olddir; fi
 	    mkdir $dirbase
@@ -80,7 +77,7 @@ for i in $taglist; do
 	    fi
 	fi
     else
-	(echo "svn update errors for $dirbase!"; \
+	(echo "Update errors for $dirbase!"; \
 	    cat $updlog; cat $upderrs) >> errors
     fi
 done
