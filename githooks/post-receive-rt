@@ -17,7 +17,8 @@ new_ticket_re = re.compile(r'^(RT-)?ticket:\s*(\d+)\s*\(new\)', re.IGNORECASE)
 subject_re = re.compile(r'^(RT-)?subject:', re.IGNORECASE)
 
 # Start with the log message for the commit.
-rev = sys.argv[1]
+shortname = sys.argv[1]
+rev = sys.argv[2]
 msg = run(['git', 'show', '-s', '--format=%B', rev])
 
 # Grab RT headers from the end (removing any trailing blanks before and after).
@@ -68,6 +69,7 @@ msg.append('Author: ' + author)
 if committer != author:
     msg.append('Committer: ' + committer)
 msg.append('Commit: ' + rev)
+msg.append('Branch: ' + shortname)
 msg.extend(run(['git', 'diff-tree', '--no-commit-id', '--root', '--stat',
                 '-M', '--cc', rev]))
 

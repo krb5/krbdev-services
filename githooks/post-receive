@@ -50,7 +50,7 @@ for oldrev, newrev, refname in inputs:
             if rev not in revs_seen:
                 revs_seen.add(rev)
                 run_hook('post-receive-notify', ['commit', shortname, rev])
-                run_hook('post-receive-rt', [rev])
+                run_hook('post-receive-rt', [shortname, rev])
                 nrevs += 1
         if nrevs == 0 and oldrev != no_rev:
             # Branch was fast-forwarded along an existing branch or another
