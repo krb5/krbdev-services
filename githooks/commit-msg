@@ -1,0 +1,40 @@
+#!/usr/bin/python
+
+import re
+import subprocess
+import sys
+
+filename = sys.argv[1]
+
+f = open(filename, 'r+')
+msg = list(f)
+
+del_re = re.compile(r'^((\s*)|(#.*))$')
+header_re = re.compile(r'([\w-]+):\s*(.*)')
+new_ticket_re = re.compile(r'^((?:RT-)?ticket:)\s*(new)', re.IGNORECASE)
+
+while len(msg) > 0 and del_re.match(msg[-1]):
+    del msg[-1]
+
+newmsg = []
+
+while len(msg) > 0:
+    if not header_re.match(msg[-1]):
+        break
+    line = msg.pop()
+    m = new_ticket_re.match(line)
+    if not m:
+        newmsg.append(line)
+    else:
+        p = subprocess.Popen(['ssh', 'git.mit.edu', 'krb5-rt-id'],
+                             stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        ticket, err = p.communicate()
+        newticket = m.expand(r'\1 ' + ticket.rstrip() + r' (\2)\n')
+        newmsg.append(newticket)
+
+# Pulling headers from the end reverses the order, so undo that.
+msg += reversed(newmsg)
+
+f.seek(0)
+f.truncate()
+f.writelines(msg)
