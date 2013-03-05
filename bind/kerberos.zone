@@ -1,7 +1,7 @@
 ; $ORIGIN kerberos.org
 $TTL 3600
 @		IN	SOA	ns1 krbcore-dns.mit.edu. (
-			2012030101	; Serial
+			2013030400	; Serial
 			604800		; Refresh
 			86400		; Retry
 			2419200		; Expire
@@ -20,6 +20,11 @@ test	  	60	IN	A	18.3.60.39
 www.test	60	IN	A	18.3.60.39
 blog.test	60	IN	CNAME	www.test
 k5wiki.test	60	IN	CNAME	www.test
+
+; public-facing test fixture for ptr-mismatch
+kdc.test		60	IN	A	18.3.60.40
+_kerberos._udp.test	60	IN	SRV	0 0 88 kdc.test
+
 ; CNAME with intentionally mismatched PTR record
 ptr-mismatch	IN	CNAME	www
 
