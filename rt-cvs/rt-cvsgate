@@ -106,7 +106,7 @@ my $Ticket         = RT::Ticket->new($CurrentUser);
     my $message = new MIME::Entity;
     $message->build(
         From    => $CurrentUser->EmailAddress,
-        Subject => 'SVN Commit',
+        Subject => 'git commit',
         Data    => \@LogMessage
     );
 
