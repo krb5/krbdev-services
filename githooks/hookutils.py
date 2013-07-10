@@ -26,5 +26,5 @@ def run(args):
 def hookdir_file(name):
     return os.path.join(os.getenv('GIT_DIR'), 'hooks', name)
 
-if run(['git', 'config', 'hooks.verbose'])[0].lower == 'false':
+if run(['git', 'config', 'hooks.verbose'])[0].lower() == 'false':
     verbose = False
