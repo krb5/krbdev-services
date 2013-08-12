@@ -1,7 +1,7 @@
 ; $ORIGIN kerberos.org
 $TTL 3600
 @		IN	SOA	ns1 krbcore-dns.mit.edu. (
-			2013081201	; Serial
+			2013081202	; Serial
 			604800		; Refresh
 			86400		; Retry
 			2419200		; Expire
@@ -29,9 +29,9 @@ _kerberos._udp.test	60	IN	SRV	0 0 88 kdc.test
 ptr-mismatch	IN	CNAME	www
 
 ; TXT records for testing
-name1.test	IN	TXT	"REALM1.KERBEROS.ORG"
-name2.test	IN	TXT	"REALM2.KERBEROS.ORG"
-name3.sub.test	IN	TXT	"REALM3.KERBEROS.ORG"
+_kerberos.name1.test		IN	TXT	"REALM1.KERBEROS.ORG"
+_kerberos.name2.test		IN	TXT	"REALM2.KERBEROS.ORG"
+_kerberos.name3.sub.test	IN	TXT	"REALM3.KERBEROS.ORG"
 
 ; Zone for interop event
 i		IN	NS	ns1.i
