@@ -12,3 +12,6 @@ krbdev-guest-06			amd64 Ubuntu 10.04 spare buildslave,
 krbdev-guest-07			amd64 Sol10u9 buildslave (setup pending)
 krbdev-guest-08			amd64 Ubuntu 10.04 buildslave (live)
 krbdev-guest-09			amd64 Ubuntu 12.04 buildslave (setup pending)
+
+krbdev-guest-13			coverity buildslave
+krbdev-guest-14			interop 2013
