@@ -15,3 +15,4 @@ krbdev-guest-09			amd64 Ubuntu 12.04 buildslave (setup pending)
 
 krbdev-guest-13			coverity buildslave
 krbdev-guest-14			interop 2013
+krbdev-guest-15			interop 2013
