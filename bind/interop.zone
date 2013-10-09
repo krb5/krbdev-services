@@ -1,7 +1,7 @@
 ; $ORIGIN i.kerberos.org
 $TTL 60
 @		IN	SOA	ns1 krbcore-dns.mit.edu. (
-			2013100800	; Serial
+			2013100904	; Serial
 			604800		; Refresh
 			86400		; Retry
 			2419200		; Expire
@@ -68,3 +68,37 @@ ms1.i.kerberos.org.  IN A 18.187.2.3
 
 _kerberos._udp.mit112	IN	SRV	0 0 88 krbdev-guest-14.mit.edu.
 _kerberos._tcp.mit112	IN	SRV	0 0 88 krbdev-guest-14.mit.edu.
+
+; Windows auto-generated zone file for S2012R2
+
+_ldap._tcp.win2012r2.i.kerberos.org.  IN SRV 0 100 389 krb-interop-2.win2012r2.i.kerberos.org.
+_ldap._tcp.Default-First-Site-Name._sites.win2012r2.i.kerberos.org.  IN SRV 0 100 389 krb-interop-2.win2012r2.i.kerberos.org.
+_ldap._tcp.pdc._msdcs.win2012r2.i.kerberos.org.  IN SRV 0 100 389 krb-interop-2.win2012r2.i.kerberos.org.
+_ldap._tcp.gc._msdcs.win2012r2.i.kerberos.org.  IN SRV 0 100 3268 krb-interop-2.win2012r2.i.kerberos.org.
+_ldap._tcp.Default-First-Site-Name._sites.gc._msdcs.win2012r2.i.kerberos.org.  IN SRV 0 100 3268 krb-interop-2.win2012r2.i.kerberos.org.
+_ldap._tcp.779ebb2b-109e-48d9-901e-8e2e751ad0eb.domains._msdcs.win2012r2.i.kerberos.org.  IN SRV 0 100 389 krb-interop-2.win2012r2.i.kerberos.org.
+928cfc67-eac7-4467-b3c3-551f0d253fbd._msdcs.win2012r2.i.kerberos.org.  IN CNAME krb-interop-2.win2012r2.i.kerberos.org.
+_kerberos._tcp.dc._msdcs.win2012r2.i.kerberos.org.  IN SRV 0 100 88 krb-interop-2.win2012r2.i.kerberos.org.
+_kerberos._tcp.Default-First-Site-Name._sites.dc._msdcs.win2012r2.i.kerberos.org.  IN SRV 0 100 88 krb-interop-2.win2012r2.i.kerberos.org.
+_ldap._tcp.dc._msdcs.win2012r2.i.kerberos.org.  IN SRV 0 100 389 krb-interop-2.win2012r2.i.kerberos.org.
+_ldap._tcp.Default-First-Site-Name._sites.dc._msdcs.win2012r2.i.kerberos.org.  IN SRV 0 100 389 krb-interop-2.win2012r2.i.kerberos.org.
+; _kerberos._tcp.win2012r2.i.kerberos.org.  IN SRV 0 100 88 krb-interop-2.win2012r2.i.kerberos.org.
+_kerberos._tcp.Default-First-Site-Name._sites.win2012r2.i.kerberos.org.  IN SRV 0 100 88 krb-interop-2.win2012r2.i.kerberos.org.
+_gc._tcp.win2012r2.i.kerberos.org.  IN SRV 0 100 3268 krb-interop-2.win2012r2.i.kerberos.org.
+_gc._tcp.Default-First-Site-Name._sites.win2012r2.i.kerberos.org.  IN SRV 0 100 3268 krb-interop-2.win2012r2.i.kerberos.org.
+; _kerberos._udp.win2012r2.i.kerberos.org.  IN SRV 0 100 88 krb-interop-2.win2012r2.i.kerberos.org.
+; _kpasswd._tcp.win2012r2.i.kerberos.org.  IN SRV 0 100 464 krb-interop-2.win2012r2.i.kerberos.org.
+; _kpasswd._udp.win2012r2.i.kerberos.org.  IN SRV 0 100 464 krb-interop-2.win2012r2.i.kerberos.org.
+; win2012r2.i.kerberos.org.  IN AAAA 2002:12bb:203::12bb:203
+; gc._msdcs.win2012r2.i.kerberos.org.  IN AAAA 2002:12bb:203::12bb:203
+; win2012r2.i.kerberos.org.  IN AAAA 2001:4830:2446:bb:d905:fe44:4e69:cc22
+; gc._msdcs.win2012r2.i.kerberos.org.  IN AAAA 2001:4830:2446:bb:d905:fe44:4e69:cc22
+win2012r2.i.kerberos.org.  IN A 18.18.0.75
+krb-interop-2.win2012r2.i.kerberos.org.  IN A 18.18.0.75
+; gc._msdcs.win2012r2.i.kerberos.org.  IN A 18.187.2.3
+
+_kerberos._udp.win2012r2	IN	SRV	0 0 88 krb-interop-2.win2012r2
+_kerberos._tcp.win2012r2	IN	SRV	0 0 88 krb-interop-2.win2012r2
+
+_kpasswd._tcp.win2012r2	IN	SRV	0 0 464 krb-interop-2.win2012r2
+_kpasswd._udp.win2012r2	IN	SRV	0 0 464 krb-interop-2.win2012r2
