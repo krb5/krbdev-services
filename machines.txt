@@ -6,7 +6,7 @@ krbdev				RT server, snapshots, buildbot, etc.
 krbdev-guest-23			amd64 Ubuntu 10.04 SecurID testing
 krbdev-guest-24			i386 Ubuntu 10.04 buildslave
 krbdev-guest-25			amd64 Ubuntu 10.04 kerborg migration staging
-krbdev-guest-06			amd64 Ubuntu 10.04 spare buildslave,
+krbdev-guest-26			amd64 Ubuntu 10.04 spare buildslave,
 				TEST.KERBEROS.ORG KDC for rdns test
 				case
 krbdev-guest-28			amd64 Ubuntu 10.04 buildslave (live)
