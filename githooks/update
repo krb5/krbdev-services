@@ -136,6 +136,12 @@ def check_committer(rev, expected):
             rev)
 
 
+def check_merge(rev):
+    parents = run(['git', 'show', '-s', '--format=%P', rev])[0].split()
+    if len(parents) > 1:
+        fatal('Merge commits are not allowed')
+
+
 refname, oldrev, newrev = sys.argv[1:]
 
 # Look up username in the authors file.
@@ -155,6 +161,11 @@ if not expected_committer:
 if newrev == no_rev:
     fatal('Deleting refs is not allowed')
 
+branchers = run(['git', 'config', '--get-all', 'hooks.branchers'])
+if oldrev == no_rev:
+    if user not in branchers:
+        fatal('User %s not authorized to create new refs' % user)
+
 if refname.startswith('refs/heads/'):
     # receive.denyNonFastForwards will prevent non-ff updates.
     for rev in run(['git', 'rev-list', newrev, '--not', '--all'])[::-1]:
@@ -162,6 +173,7 @@ if refname.startswith('refs/heads/'):
         check_message(rev, msg)
         check_whitespace(rev, msg)
         check_committer(rev, expected_committer)
+        check_merge(rev)
 elif refname.startswith('refs/tags/'):
     if oldrev != no_rev:
         fatal('Changing tags is not allowed')
