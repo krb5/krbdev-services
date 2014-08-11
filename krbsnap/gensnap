@@ -1,6 +1,6 @@
 #!/bin/sh
 domail=nil
-taglist="master:krb5-current krb5-1.9:krb5-1.9-current krb5-1.10:krb5-1.10-current krb5-1.11:krb5-1.11-current"
+taglist="master:krb5-current krb5-1.11:krb5-1.11-current krb5-1.12:krb5-1.12-current krb5-1.13:krb5-1.13-current"
 logfile=log
 errsto=krbcore@mit.edu
 mailto=krb5-snapshot@mit.edu
