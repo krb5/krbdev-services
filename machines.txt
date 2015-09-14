@@ -19,3 +19,6 @@ krbdev-guest-33			coverity buildslave
 
 krbdev-guest-34			interop 2013
 krbdev-guest-35			interop 2013
+
+krbdev-guest-36			amd64 Ubuntu 14.04 buildslave
+krbdev-guest-37			i386 Ubuntu 14.04 buildslave
