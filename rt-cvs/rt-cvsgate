@@ -228,7 +228,7 @@ my $kids = $ks->KeywordObj->Descendents;
 foreach my $kid ( keys %{$kids} ) {
 next unless ( $kids->{$kid} =~ /^$args$/i );
 if ( $op eq '-' ) {
-( $val, $msg ) = $Ticket->DeleteKeywordA(
+( $val, $msg ) = $Ticket->DeleteKeyword(
 KeywordSelect => $ks->id,
 Keyword       => $kid
 );
