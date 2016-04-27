@@ -1,15 +1,17 @@
 krbdev-sparc-build		SPARC/Solaris build server W91-130 cabinet 4.06
-e40-esx-krb-1			VMware ESX host E40 machine room
 kerberos-org			web server {www,k5wiki,blog}.kerberos.org
 krbdev				RT server, snapshots, buildbot, etc.
 
+# For buildbot slaves, subtract 20 from the number suffix of the
+# hostname to get the "vnn" identifier for buildbot.
+
 krbdev-guest-23			amd64 Ubuntu 10.04 SecurID testing
-krbdev-guest-24			i386 Ubuntu 10.04 buildslave
+krbdev-guest-24			i386 Ubuntu 10.04 buildslave (spare)
 krbdev-guest-25			amd64 Ubuntu 10.04 kerborg migration staging
 krbdev-guest-26			amd64 Ubuntu 10.04 spare buildslave,
 				TEST.KERBEROS.ORG KDC for rdns test
 				case
-krbdev-guest-28			amd64 Ubuntu 10.04 buildslave (live)
+krbdev-guest-28			amd64 Ubuntu 10.04 buildslave (spare)
 krbdev-guest-29			amd64 Ubuntu 12.04 buildslave (live)
 
 krbdev-guest-31			interop 2011
