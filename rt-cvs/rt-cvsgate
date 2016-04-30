@@ -231,41 +231,45 @@ Subject Queue Owner
 
 sub ActOnKeyword {
     my ($Ticket, $command, $args) = (@_);
-    my $val;
     my $msg = '';
-#Default is to add keywords
-    my $op = '+';
     my $ks = $Ticket->QueueObj->KeywordSelect($command);
 
     unless ( $ks->Id ) {
 	return ("ERROR: couldn't find a keyword "
 		. "selection matching '$command'\n");
     }
-
-    if ( $args =~ /^(\-|\+)(.*)$/ ) {
-	$op   = $1;
-	$args = $2;
-    }
     my $kids = $ks->KeywordObj->Descendents;
 
+    foreach my $arg (@{$args}) {
+	my $val;
+	# Default is to add keywords
+	my $op = '+';
+	my $onemsg = '';
+	if ( $arg =~ /^(\-|\+)(.*)$/ ) {
+	    $op   = $1;
+	    $arg = $2;
+	}
+
 #TODO: looping is lossy.
-    foreach my $kid ( keys %{$kids} ) {
-	next unless ( $kids->{$kid} =~ /^$args$/i );
-	if ( $op eq '-' ) {
-	    ( $val, $msg ) = $Ticket->DeleteKeyword(
-		KeywordSelect => $ks->id,
-		Keyword       => $kid
-		);
+	foreach my $kid ( keys %{$kids} ) {
+	    next unless ( $kids->{$kid} =~ /^$arg$/i );
+	    if ( $op eq '-' ) {
+		( $val, $onemsg ) = $Ticket->DeleteKeyword(
+		    KeywordSelect => $ks->id,
+		    Keyword       => $kid
+		    );
+	    }
+	    elsif ( $op eq '+' ) {
+		( $val, $onemsg ) = $Ticket->AddKeyword(
+		    KeywordSelect => $ks->id,
+		    Keyword       => $kid
+		    );
+	    }
+	    else {
+		$onemsg = "'$op' is not a valid operator.\n";
+	    }
 	}
-	elsif ( $op eq '+' ) {
-	    ( $val, $msg ) = $Ticket->AddKeyword(
-		KeywordSelect => $ks->id,
-		Keyword       => $kid
-		);
-	}
-	else {
-	    $msg = "'$op' is not a valid operator.\n";
-	}
+	$msg .= $onemsg . "\n";
     }
     return ($msg);
 }
@@ -289,17 +293,20 @@ sub ConstructTicketHash {
 		};
 	    }
 	    if ($args eq 'new') {
-		push @{$Actions{$args}{Requestor}}, $email;
+		push @{$Actions{$args}{requestor}}, $email;
 		$Actions{$args}{queue} = "krb5";
 	    }
 	    $ticket_action = $Actions{$args};
 	    next;
 	}
-	if ($command =~ /Cc|Requestors?|AdminCc/i) {
-	    $command =~ s/[Rr]equesters/Requestor/;
-	    push @{$ticket_action->{lc($command)}}, $args;
-	} else {
+	if ($command =~ /^(Subject|Owner|Status|Queue)$/i ||
+	    $command =~ /^(due|starts|started|resolved)/i) {
+	    # Single-valued argument
 	    $ticket_action->{lc($command)} = $args;
+	} else {
+	    $command =~ s/[Rr]equest[eo]rs?/Requestor/;
+	    # List-valued argument
+	    push @{$ticket_action->{lc($command)}}, $args;
 	}
     }
     return (%Actions);
