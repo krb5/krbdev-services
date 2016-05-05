@@ -176,8 +176,11 @@ Subject Queue Owner
 		( $val, $msg ) = $Ticket->$method( $date->ISO );
 	    }
 
-# Deal with the watchers
-	    elsif ( $command =~ /^(requestor|requestors|cc|admincc)$/i ) {
+	    # Deal with the watchers.  Leading underscore on the
+	    # command defers the watcher setting until after ticket
+	    # creation (which avoids the ticket creation autoresponse
+	    # email).
+	    elsif ( $command =~ /^_?(requestor|requestors|cc|admincc)$/i ) {
 		$msg = "";
 		foreach (@{$args}) {
 		    my $operator = "+";
@@ -186,9 +189,9 @@ Subject Queue Owner
 			$operator = $1;
 			$_     = $2;
 		    }
-		    $type = 'Requestor' if ( $command =~ /^requestor/i );
-		    $type = 'Cc'        if ( $command =~ /^cc/i );
-		    $type = 'AdminCc'   if ( $command =~ /^admincc/i );
+		    $type = 'Requestor' if ( $command =~ /^_?requestor/i );
+		    $type = 'Cc'        if ( $command =~ /^_?cc/i );
+		    $type = 'AdminCc'   if ( $command =~ /^_?admincc/i );
 
 		    if ( $operator eq '+' ) {
 			( $val, $msg ) = $Ticket->AddWatcher(
@@ -293,7 +296,7 @@ sub ConstructTicketHash {
 		};
 	    }
 	    if ($args eq 'new') {
-		push @{$Actions{$args}{requestor}}, $email;
+		push @{$Actions{$args}{_requestor}}, $email;
 		$Actions{$args}{queue} = "krb5";
 	    }
 	    $ticket_action = $Actions{$args};
