@@ -299,7 +299,7 @@ sub ConstructTicketHash {
 	    $ticket_action = $Actions{$args};
 	    next;
 	}
-	if ($command =~ /^(Subject|Owner|Status|Queue)$/i ||
+	if ($command =~ /^(id|Subject|Owner|Status|Queue)$/i ||
 	    $command =~ /^(due|starts|started|resolved)/i) {
 	    # Single-valued argument
 	    $ticket_action->{lc($command)} = $args;
