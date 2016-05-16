@@ -6,6 +6,17 @@
 // organization
 include "/etc/bind/zones.rfc1918";
 
+zone "mit.edu" {
+        type stub;
+        masters { 18.70.0.160; 18.71.0.151; 18.72.0.3; };
+        file "named.mit.edu";
+};
+zone "18.in-addr.arpa" {
+        type stub;
+        masters { 18.70.0.160; 18.71.0.151; 18.72.0.3; };
+        file "named.18.in-addr.arpa";
+};
+
 zone "kerberos.org" { type master; allow-query { any; }; allow-transfer { any; }; file "/etc/bind/kerberos.zone"; };
 zone "kerberos.net" { type master; allow-query { any; }; allow-transfer { any; }; file "/etc/bind/kerberos.zone"; };
 
