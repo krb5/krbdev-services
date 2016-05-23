@@ -1,0 +1,32 @@
+# OpenSSL configuration file for kerborg cert
+
+HOME			= .
+RANDFILE		= $ENV::HOME/.rnd
+
+[ req ]
+prompt			= no
+default_bits		= 2048
+default_keyfile 	= privkey.pem
+distinguished_name	= req_distinguished_name
+x509_extensions		= kerborg_ext
+req_extensions		= req_ext
+
+string_mask = utf8only
+
+[ req_distinguished_name ]
+countryName			= US
+stateOrProvinceName		= Massachusetts
+localityName			= Cambridge
+0.organizationName		= Massachusetts Institute of Technology
+organizationalUnitName		= Information Systems & Technology
+commonName			= www.kerberos.org
+
+[ req_ext ]
+subjectAltName = DNS:kerberos.org,DNS:*.kerberos.org,DNS:*.test.kerberos.org
+
+[ kerborg_ext ]
+subjectAltName = DNS:kerberos.org,DNS:*.kerberos.org,DNS:*.test.kerberos.org
+
+subjectKeyIdentifier=hash
+authorityKeyIdentifier=keyid:always,issuer
+basicConstraints = CA:true
