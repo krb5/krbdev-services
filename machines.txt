@@ -1,5 +1,5 @@
 krbdev-sparc-build		SPARC/Solaris build server W91-130 cabinet 4.06
-kerberos-org			web server {www,k5wiki,blog}.kerberos.org
+kerborg-app-1			web server {www,k5wiki,blog}.kerberos.org
 krbdev				RT server, snapshots, buildbot, etc.
 
 # For buildbot slaves, subtract 20 from the number suffix of the
@@ -24,3 +24,6 @@ krbdev-guest-35			interop 2013
 
 krbdev-guest-36			amd64 Ubuntu 14.04 buildslave
 krbdev-guest-37			i386 Ubuntu 14.04 buildslave
+
+krbdev-guest-38			amd64 Ubuntu 14.04 kerborg migration
+				staging
