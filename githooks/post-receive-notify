@@ -13,9 +13,9 @@
 from hookutils import *
 
 max_diff_lines = 5000
-list_addr = run(['git', 'config', 'hooks.mailinglist'])[0]
-reponame = run(['git', 'config', 'hooks.reponame'])[0]
-commit_url_prefix = run(['git', 'config', 'hooks.commit-url-prefix'])[0]
+list_addr = config_get('hooks.mailinglist')
+reponame = config_get('hooks.reponame')
+commit_url_prefix = config_get('hooks.commit-url-prefix')
 
 def send(subject, body):
     if list_addr == '-':
