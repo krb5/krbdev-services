@@ -50,7 +50,7 @@ def check_message(rev, msg):
     for line in msg[::-1]:
         if bad_new_ticket_re.match(line):
             err('Use "ticket: NNNN (new)" (allocate with "ssh git.mit.edu ' +
-                'krb5-rd-id")', rev)
+                'krb5-rt-id")', rev)
 
 
 # Return true if rev:filename shouldn't have tabs in it based on a modeline.
