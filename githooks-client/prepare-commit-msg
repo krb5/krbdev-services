@@ -1,0 +1,53 @@
+#!/usr/bin/python
+
+from hookutils import *
+import re
+import os
+import sys
+
+# New-style "ticket: NNNN (new)"
+ticketnew_re = re.compile(r'^((?:RT-)?ticket:\s*[0-9]+)\s*(?:\(new\)\s*)?$',
+                          re.IGNORECASE)
+
+def edit_rtheaders(msg):
+    newcomments = ['# ' + h for h in msg.rtheaders]
+    rtheaders_new = []
+    version_fixed = os.environ.get('KRB5_VERSION_FIXED')
+
+    for h in msg.rtheaders:
+        m = ticketnew_re.match(h)
+        if not m:
+            if version_fixed:
+                # Delete RT headers that aren't "ticket:"
+                continue
+            else:
+                rtheaders_new.append(h)
+        else:
+            # Delete "(new)" from new-ticket header
+            rtheaders_new.append(m.expand(r'\1'))
+            if version_fixed:
+                rtheaders_new.append("version_fixed: %s" % version_fixed)
+
+    if newcomments:
+        newcomments = ['# previous RT headers:', '#'] + newcomments + ['#']
+
+    if msg.comments:
+        msg.comments = newcomments + msg.comments
+
+    msg.rtheaders = rtheaders_new
+
+fname = sys.argv[1]
+
+if verbose:
+    print ">>>start prepare-commit-msg; args %s" % sys.argv[1:]
+    os.system("cat %s" % fname)
+
+msg = Commitmsg.fromfile(fname)
+
+if msg.cherry:
+    edit_rtheaders(msg)
+
+msg.tofile()
+
+if verbose:
+    print ">>>end prepare-commit-msg"
