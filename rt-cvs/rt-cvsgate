@@ -288,7 +288,7 @@ sub ConstructTicketHash {
 	if ( $command =~ /^ticket$/i ) {
 	    unless (exists $Actions{$args}) {
 		$Actions{$args} = {
-		    status => 'review',
+		    status => 'resolved',
 		    requestor=> [],
 		    cc => [],
 		    admincc => [],
