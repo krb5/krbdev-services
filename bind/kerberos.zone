@@ -1,7 +1,7 @@
 ; $ORIGIN kerberos.org
 $TTL 3600
 @		IN	SOA	ns1 krbcore-dns.mit.edu. (
-			2017030800	; Serial
+			2018052401	; Serial
 			604800		; Refresh
 			86400		; Retry
 			2419200		; Expire
@@ -33,6 +33,9 @@ ptr-mismatch	IN	CNAME	www
 _kerberos.name1.test		IN	TXT	"REALM1.KERBEROS.ORG"
 _kerberos.name2.test		IN	TXT	"REALM2.KERBEROS.ORG"
 _kerberos.name3.sub.test	IN	TXT	"REALM3.KERBEROS.ORG"
+
+_kerberos.test	IN	URI	0 0 "krbsrv:M:tcp:18.9.58.16"
+_kerberos.test	IN	URI	0 0 "krbsrv:M:udp:18.9.58.16"
 
 ; Zone for interop event
 i		IN	NS	ns1.i
