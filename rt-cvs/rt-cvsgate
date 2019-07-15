@@ -1,9 +1,8 @@
 #!/usr/bin/perl -w
 use strict;
 
-#use lib qw (/var/rt2/perl5/lib /var/rt2/perl5/lib/sun4-solaris-thread-multi /var/rt2/perl5/lib/perl5/sun4-solaris-thread-multi);
-use lib "/var/rt2/lib";
-use lib "/var/rt2/etc";
+use lib "/opt/rt4/lib";
+use lib "/opt/rt4/etc";
 use MIME::Entity;
 
 # {{{ Get the RT stuff set up
@@ -13,14 +12,10 @@ use MIME::Entity;
 sub rt_handler {
     my (@LogMessage) = (@_);
 
-    use RT::Interface::CLI qw(
-CleanEnv LoadConfig DBConnect
-GetCurrentUser GetMessageContent
-);
+    use RT::Interface::CLI qw(Init);
     require RT::Ticket;
 
-    #Connect to the database and get RT::SystemUser and RT::Nobody loaded
-    DBConnect();
+    Init();
 
     #Get the current user all loaded
     my ($Gecos, $CurrentUser);
@@ -207,9 +202,9 @@ Subject Queue Owner
 		}
 	    }
 
-# {{{ Deal with ticket keywords
+# {{{ Deal with custom fields
 	    else {
-		$msg = ActOnKeyword($Ticket, $command, $args);
+		$msg = ActOnCustomField($Ticket, $command, $args);
 	    }
 
 # }}}
@@ -232,20 +227,19 @@ Subject Queue Owner
 
 # }}}
 
-sub ActOnKeyword {
+sub ActOnCustomField {
     my ($Ticket, $command, $args) = (@_);
     my $msg = '';
-    my $ks = $Ticket->QueueObj->KeywordSelect($command);
+    my $cf = $Ticket->QueueObj->CustomField($command);
 
-    unless ( $ks->Id ) {
-	return ("ERROR: couldn't find a keyword "
+    unless ( $cf->Id ) {
+	return ("ERROR: couldn't find a custom field "
 		. "selection matching '$command'\n");
     }
-    my $kids = $ks->KeywordObj->Descendents;
 
     foreach my $arg (@{$args}) {
 	my $val;
-	# Default is to add keywords
+	# Default is to add custom fields
 	my $op = '+';
 	my $onemsg = '';
 	if ( $arg =~ /^(\-|\+)(.*)$/ ) {
@@ -253,24 +247,20 @@ sub ActOnKeyword {
 	    $arg = $2;
 	}
 
-#TODO: looping is lossy.
-	foreach my $kid ( keys %{$kids} ) {
-	    next unless ( $kids->{$kid} =~ /^$arg$/i );
-	    if ( $op eq '-' ) {
-		( $val, $onemsg ) = $Ticket->DeleteKeyword(
-		    KeywordSelect => $ks->id,
-		    Keyword       => $kid
-		    );
-	    }
-	    elsif ( $op eq '+' ) {
-		( $val, $onemsg ) = $Ticket->AddKeyword(
-		    KeywordSelect => $ks->id,
-		    Keyword       => $kid
-		    );
-	    }
-	    else {
-		$onemsg = "'$op' is not a valid operator.\n";
-	    }
+	if ( $op eq '-' ) {
+	    ( $val, $onemsg ) = $Ticket->AddCustomFieldValue(
+		Field => $cf->id,
+		Value => $arg
+		);
+	}
+	elsif ( $op eq '+' ) {
+	    ( $val, $onemsg ) = $Ticket->AddCustomFieldValue(
+		Field => $cf->id,
+		Value => $arg
+		);
+	}
+	else {
+	    $onemsg = "'$op' is not a valid operator.\n";
 	}
 	$msg .= $onemsg . "\n";
     }
@@ -336,12 +326,7 @@ sub PrintActions {
 }
 #}}}
 
-#Clean out all the nasties from the environment
-CleanEnv();
-
-#Load etc/config.pm and drop privs
-LoadConfig();
+Init();
 
 #Drop setgid permissions
-RT::DropSetGIDPermissions();
 rt_handler(<STDIN>);

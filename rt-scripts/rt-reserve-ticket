@@ -1,21 +1,11 @@
 #!/usr/bin/perl -w
 use strict;
+use lib "/opt/rt4/lib";
+use lib "/opt/rt4/etc";
+use RT::Interface::CLI qw(Init);
 
-#use lib qw (/var/rt2/perl5/lib /var/rt2/perl5/lib/sun4-solaris-thread-multi /var/rt2/perl5/lib/perl5/sun4-solaris-thread-multi);
-use lib "/var/rt2/lib";
-use lib "/var/rt2/etc";
-use MIME::Entity;
+no warnings 'once';
 
-use RT::Interface::CLI qw(CleanEnv LoadConfig DBConnect GetCurrentUser GetMessageContent);
-require RT::Ticket;
-
-
-#Clean out all the nasties from the environment
-CleanEnv();
-
-#Load etc/config.pm and drop privs
-LoadConfig();
-
-DBConnect();
+Init();
 print $RT::Handle->SimpleQuery("select nextval('tickets_id_seq')")->fetchall_arrayref->[0][0];
 print $/;
