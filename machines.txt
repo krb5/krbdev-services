@@ -1,8 +1,7 @@
 krbdev-sparc-build		SPARC/Solaris build server W91-130 cabinet 4.06
 kerborg-app-1			web server {www,k5wiki,blog}.kerberos.org
-krbdev				RT server, snapshots, buildbot, etc.
-krbdev-prod-app-1		amd64 Ubuntu 16.04 staging new krbdev.mit.edu
-krbdev-buildbot			amd64 Ubuntu 16.04 staging new buildbot
+krbdev-prod-app-1		amd64 Ubuntu 16.04 RT server (krbdev.mit.edu)
+krbdev-buildbot			amd64 Ubuntu 16.04 buildbot master
 
 # For buildbot slaves, subtract 20 from the number suffix of the
 # hostname to get the "vnn" identifier for buildbot.
