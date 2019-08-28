@@ -3,20 +3,17 @@ kerborg-app-1			web server {www,k5wiki,blog}.kerberos.org
 krbdev-prod-app-1		amd64 Ubuntu 16.04 RT server (krbdev.mit.edu)
 krbdev-buildbot			amd64 Ubuntu 16.04 buildbot master
 
-# For buildbot slaves, subtract 20 from the number suffix of the
-# hostname to get the "vnn" identifier for buildbot.
+krbdev-guest-01			amd64 Ubuntu 16.04 buildbot worker (v01)
+krbdev-guest-02			amd64 Ubuntu 18.04 buildbot worker (v02)
+krbdev-guest-03			i386 Ubuntu 16.04 buildbot worker (v03)
+krbdev-guest-04			i386 Ubuntu 18.04 buildbot worker (v04)
 
-krbdev-guest-23			amd64 Ubuntu 10.04 SecurID testing
-krbdev-guest-25			amd64 Ubuntu 10.04 kerborg migration staging
-krbdev-guest-26			amd64 Ubuntu 10.04 spare buildslave,
+krbdev-guest-26			amd64 Ubuntu 10.04 spare buildbot worker (v06)
 				TEST.KERBEROS.ORG KDC for rdns test
 				case
-krbdev-guest-29			amd64 Ubuntu 12.04 buildslave (live)
+krbdev-guest-29			amd64 Ubuntu 12.04 buildbot worker (v09)
 
-krbdev-guest-33			coverity buildslave
+krbdev-guest-33			coverity buildbot worker (v13)
 
-krbdev-guest-36			amd64 Ubuntu 14.04 buildslave
-krbdev-guest-37			i386 Ubuntu 14.04 buildslave
-
-krbdev-guest-38			amd64 Ubuntu 14.04 kerborg migration
-				staging
+krbdev-guest-36			amd64 Ubuntu 14.04 buildbot worker (v16)
+krbdev-guest-37			i386 Ubuntu 14.04 buildbot worker (v17)
