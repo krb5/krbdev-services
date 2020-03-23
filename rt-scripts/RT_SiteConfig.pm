@@ -17,6 +17,7 @@
 Set($rtname, 'krbdev.mit.edu');
 Set($Organization , 'mit.edu');
 Set($OwnerEmail , 'ghudson@mit.edu');
+Set($LoopsToRTOwner, 0);
 Set($CorrespondAddress , 'rt@krbdev.mit.edu');
 Set($CommentAddress , 'rt-comment@krbdev.mit.edu');
 Set($UseFriendlyToLine, 1);
