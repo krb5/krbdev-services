@@ -1,6 +1,6 @@
 krbdev-sparc-build		SPARC/Solaris build server W91-130 cabinet 4.06
-kerborg-app-1			web server {www,k5wiki,blog}.kerberos.org
-krbdev-prod-app-1		amd64 Ubuntu 16.04 RT server (krbdev.mit.edu)
+kerborg-prod-app-1		amd64 Ubuntu 20.04 RT server (krbdev.mit.edu)
+kerborg-prod-app-2		web server {www,k5wiki,blog}.kerberos.org
 krbdev-buildbot			amd64 Ubuntu 16.04 buildbot master
 
 krbdev-guest-01			amd64 Ubuntu 16.04 buildbot worker (v01)

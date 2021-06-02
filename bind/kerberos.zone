@@ -1,7 +1,7 @@
 ; $ORIGIN kerberos.org
 $TTL 3600
 @		IN	SOA	ns1 krbcore-dns.mit.edu. (
-			2020090300	; Serial
+			2021060100	; Serial
 			604800		; Refresh
 			86400		; Retry
 			2419200		; Expire
@@ -11,7 +11,7 @@ $TTL 3600
 @		IN	NS	ns2
 @		IN	A	18.9.62.116
 ns1		IN	A	18.9.62.116
-ns2		IN	A	18.9.62.32
+ns2		IN	A	18.9.62.11
 www		IN	A	18.9.62.116
 blog		IN	A	18.9.62.116
 k5wiki		IN	A	18.9.62.116

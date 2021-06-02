@@ -1,8 +1,8 @@
 #!/usr/bin/perl -w
 use strict;
 
-use lib "/opt/rt4/lib";
-use lib "/opt/rt4/etc";
+use lib "/usr/share/request-tracker4/lib";
+use lib "/etc/request-tracker4";
 use MIME::Entity;
 
 # {{{ Get the RT stuff set up

@@ -33,5 +33,6 @@ Set( %FullTextSearch,
     Column     => 'ContentIndex',
     Table      => 'AttachmentsIndex',
 );
+Set($DatabaseHost, "");
 #Set(@Plugins,(qw(Extension::QuickDelete RT::FM)));
 1;
