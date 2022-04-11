@@ -14,7 +14,7 @@ from hookutils import *
 # RT or the notification list.
 max_revs_per_ref = 50
 
-push_to = config_get_all('hooks.push-to')
+push_to = run(['git', 'config', '--get-all', 'hooks.push-to'])
 
 # Run a script from the hooks directory with the specified arguments.
 def run_hook(name, args=[]):

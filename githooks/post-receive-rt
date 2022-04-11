@@ -7,10 +7,10 @@ from hookutils import *
 import re
 import shlex
 
-ssh_cmd = config_get('hooks.rt-ssh-cmd')
+ssh_cmd = run(['git', 'config', 'hooks.rt-ssh-cmd'])[0]
 if not ssh_cmd:
     sys.exit(0)
-commit_url_prefix = config_get('hooks.commit-url-prefix')
+commit_url_prefix = run(['git', 'config', 'hooks.commit-url-prefix'])[0]
 
 header_re = re.compile(r'([\w-]+):\s*(.*)')
 new_ticket_re = re.compile(r'^(RT-)?ticket:\s*(\d+)\s*\(new\)', re.IGNORECASE)

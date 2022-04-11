@@ -161,7 +161,7 @@ if not expected_committer:
 if newrev == no_rev:
     fatal('Deleting refs is not allowed')
 
-branchers = config_get_all('hooks.branchers')
+branchers = run(['git', 'config', '--get-all', 'hooks.branchers'])
 if oldrev == no_rev:
     if user not in branchers:
         fatal('User %s not authorized to create new refs' % user)
