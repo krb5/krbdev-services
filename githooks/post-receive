@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Master post-push hook for krb5 shared git repository.  In this
 # script, we break down the push into branch creations, tag creations,

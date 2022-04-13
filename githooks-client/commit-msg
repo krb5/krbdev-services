@@ -26,7 +26,7 @@ while len(msg) > 0:
     if not m:
         newmsg.append(line)
     else:
-        p = subprocess.Popen(['ssh', 'git.mit.edu', 'krb5-rt-id'],
+        p = subprocess.Popen(['ssh', 'krbdev.mit.edu', 'krb5-rt-id'],
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         ticket, err = p.communicate()
         newticket = m.expand(r'\1 ' + ticket.rstrip() + r' (\2)\n')

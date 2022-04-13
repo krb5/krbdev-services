@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Hook script to generate email about new commits or other significant
 # events.  Invoked from post-receive with one of the following
@@ -18,40 +18,44 @@ reponame = run(['git', 'config', 'hooks.reponame'])[0]
 commit_url_prefix = run(['git', 'config', 'hooks.commit-url-prefix'])[0]
 
 def send(subject, body):
+    sender = os.getlogin() + "@mit.edu"
     if list_addr == '-':
-        print '*** Simulated email'
-        print "Subject: " + subject
-        print
-        print str.join('\n', body)
-        print '*** End simulated email'
+        print('*** Simulated email')
+        print(f'From: {sender}')
+        print(f'Subject: {subject}')
+        print()
+        print(str.join('\n', body))
+        print('*** End simulated email')
         return
-    p = subprocess.Popen(['/usr/sbin/sendmail', '-t'], stdin=subprocess.PIPE)
-    p.communicate('To: %s\nSubject: %s\n\n' % (list_addr, subject) +
+    p = subprocess.Popen(['/usr/sbin/sendmail', '-t'], stdin=subprocess.PIPE,
+                         text=True)
+    p.communicate(f'From: {sender}\nTo: {list_addr}\nSubject: {subject}\n\n' +
                   str.join('\n', body) + '\n')
 
 
 def notify_new_branch(branchname):
-    subject = '%s: new branch %s' % (reponame, branchname)
-    msg = ['A new branch "%s" has been created in the %s repository.' %
-           (branchname, reponame)]
+    subject = f'{reponame}: new branch {branchname}'
+    msg = [f'A new branch "{branchname}" has been created ' +
+           f'in the {reponame} repository.']
     send(subject, msg)
 
 
 def notify_new_tag(tagname, rev):
-    subject = '%s: new tag %s' % (reponame, tagname)
+    subject = f'{reponame}: new tag {tagname}'
     if run(['git', 'cat-file', '-t', rev])[0] == 'commit':
-        msg = ['A new lightweight tag "%s" has been created in the %s' %
-               (tagname, reponame), 'repository for the following commit:', '']
+        msg = [f'A new lightweight tag "{tagname}" has been created ' +
+               f'in the {reponame}',
+               'repository for the following commit:', '']
     else:
         msg = []
-    msg.extend(run(['git', 'show', '-s', 'refs/tags/%s' % tagname]))
+    msg.extend(run(['git', 'show', '-s', f'refs/tags/{tagname}']))
     send(subject, msg)
 
 
 def notify_commit(branchname, rev):
-    subject = '%s commit' % reponame
+    subject = f'{reponame} commit'
     if branchname != 'master':
-        subject += ' [%s]' % branchname
+        subject += f' [{branchname}]'
     subject += ': ' + run(['git', 'show', '-s', '--format=%s', rev])[0]
     msg = []
     if commit_url_prefix:
@@ -65,15 +69,15 @@ def notify_commit(branchname, rev):
 
 
 def notify_norev_update(branchname, oldrev, newrev):
-    subject = '%s: %s branch head update' % (reponame, branchname)
-    msg = ['The head of the branch "%s" has been updated from' % branchname,
-           '%s to' % oldrev, '%s,' % newrev,
+    subject = f'{reponame}: {branchname} branch head update'
+    msg = [f'The head of the branch "{branchname}" has been updated from',
+           f'{oldrev} to', '{newrev},',
            'but all of the new revisions are present on existing branches.']
     send(subject, msg)
 
 
 def notify_toomany(branchname, numrevs):
-    subject = '%s [%s]: %s commits' % (reponame, branchname, numrevs)
+    subject = f'{reponame} [{branchname}]: {numrevs} commits'
     msg = ['Notifications and RT processing has been suppressed for these',
            'commits.']
     send(subject, msg)

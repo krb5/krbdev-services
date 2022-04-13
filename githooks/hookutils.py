@@ -9,8 +9,8 @@ verbose = True
 
 # Run a command and return a list of its output lines.
 def run(args):
-    # Can't use subprocess.check_output until 2.7 (drugstore has 2.4).
-    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                         text=True)
     out, err = p.communicate()
     if p.returncode != 0:
         if verbose:

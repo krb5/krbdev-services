@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Hook script to process commit log through rt-cvsgate on
 # krbdev.mit.edu.  Invoked from post-receive with a commit hash.
@@ -75,5 +75,6 @@ msg.extend(run(['git', 'diff-tree', '--no-commit-id', '--root', '--stat',
 
 # Feed the modified message to rt-cvsgate.
 user = run(['id', '-un'])[0]
-p = subprocess.Popen(shlex.split(ssh_cmd) + [user], stdin=subprocess.PIPE)
+p = subprocess.Popen(shlex.split(ssh_cmd) + [user], stdin=subprocess.PIPE,
+                     text=True)
 p.communicate(str.join('\n', msg) + '\n')

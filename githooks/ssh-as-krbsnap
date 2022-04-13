@@ -6,6 +6,9 @@
 # continue on even if it fails, and with -q won't even print a
 # diagnostic.)
 
-exec ssh -2q -i $GIT_DIR/hooks/krbsnap_rsa_key -F/dev/null \
+# git no longer appears to pass GIT_DIR through to GIT_SSH, so default
+# to the current directory.
+
+exec ssh -2q -i "${GIT_DIR-.}"/hooks/krbsnap_rsa_key -F/dev/null \
     -oStrictHostKeyChecking=no -oPreferredAuthentications=publickey \
     -oUserKnownHostsFile=/dev/null -oUserKnownHostsFile2=/dev/null "$@"

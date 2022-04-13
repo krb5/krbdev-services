@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Update hook for krb5 shared git repository.  Prohibits:
 # * Updates to existing tags
@@ -57,7 +57,7 @@ def check_message(rev, msg):
 modeline_re = re.compile(r'-\*-\s*(.*[^\s]+)\s*-\*-')
 def modeline_disallows_tabs(rev, filename):
     p = subprocess.Popen(['git', 'show', rev + ':' + filename],
-                         stdout=subprocess.PIPE)
+                         stdout=subprocess.PIPE, text=True)
     nlines = 0
     for line in p.stdout:
         m = modeline_re.search(line)
@@ -68,8 +68,7 @@ def modeline_disallows_tabs(rev, filename):
         nlines = nlines + 1
         if nlines == 5:
             break
-    # Can't use Popen.terminate in Python 2.4.
-    os.kill(p.pid, signal.SIGTERM)
+    p.terminate()
     return False
 
 
