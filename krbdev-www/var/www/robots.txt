@@ -7,3 +7,5 @@ Disallow: /buildbot/schedulers
 Disallow: /buildbot/one_line_per_build
 Disallow: /buildbot/one_box_per_builder
 Disallow: /buildbot/xmlrpc
+Disallow: /rt/Search
+Disallow: /rt/Helpers
