@@ -3,7 +3,7 @@ set -e
 
 f=rt.dump.`date +%Y.%m.%d`
 d=/var/psqlbackups
-pg_dump -U postgres -c -f $d/$f rt4
+pg_dump -U postgres -T sessions -c -f $d/$f rt4
 gzip -9 $d/$f
 find $d -name 'rt.dump.*.gz' -mtime +30 -delete
 
