@@ -10,7 +10,7 @@ verbose = True
 # Run a command and return a list of its output lines.
 def run(args):
     p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                         text=True)
+                         text=True, errors='replace')
     out, err = p.communicate()
     if p.returncode != 0:
         if verbose:

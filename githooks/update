@@ -57,7 +57,7 @@ def check_message(rev, msg):
 modeline_re = re.compile(r'-\*-\s*(.*[^\s]+)\s*-\*-')
 def modeline_disallows_tabs(rev, filename):
     p = subprocess.Popen(['git', 'show', rev + ':' + filename],
-                         stdout=subprocess.PIPE, text=True)
+                         stdout=subprocess.PIPE, text=True, errors='replace')
     nlines = 0
     for line in p.stdout:
         m = modeline_re.search(line)
