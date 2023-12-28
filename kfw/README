@@ -1,0 +1,55 @@
+The script make-image.sh in this directory creates a modified Windows
+install image from a standard one.  To use it, ensure that 7z and
+xorrisofs are installed; on Debian systems they can be found in the
+p7zip-full and xorriso packages respectively.
+
+Run the script as:
+
+    sh /path/to/make-image.sh <image.iso>
+
+The result will be named kfwdev.iso in the current directory.  A
+temporary directory named "workdir" will be created and removed.
+
+The modified image takes care of the following aspects of creating a
+development environment:
+
+* Unattended Windows installation, configured to auto-logon to the
+  built-in administrator account (the password is "kfw").
+
+* Visual Studio 2022 installation.
+
+* Chocolatey installation.  (We may eventually want to use winget, but
+  there are several wrinkles: it does not appear to be present in a
+  Windows 11 22h2 immediately, instead appearing after some time has
+  passed; its git-bash install doesn't add shell programs to the path;
+  dotnet's wix toolset install adds wix 4, which we haven't migrated
+  to.)
+
+* Strawberry Perl, git-bash, and emacs installation.
+
+The following steps are not currently automated:
+
+* Pinning the Visual Studio x86 and x64 command shells to the task
+  bar.  Search for "x86" and "x64" in the start menu, then right-click
+  each result and select the menu option to pin it.
+
+* wix toolset installation ("choco install wixtoolset -y" and add to
+  the search path as described at
+  https://k5wiki.kerberos.org/wiki/Kerberos_for_Windows_(KfW)_Build_Environment
+  ).  The dotnet dependency installation fails if run in an
+  installation script.
+
+* Cloning and configuring the krb5 repository.
+
+* Adding ssh credentials.
+
+* Installing any tools beneficial to the hypervisor, shch as VMWare
+  Tools.
+
+* Setting the desired display resolution.
+
+Development of this script made use of following resources:
+
+* https://palant.info/2023/02/13/automating-windows-installation-in-a-vm/
+
+* https://schneegans.de/windows/unattend-generator/
