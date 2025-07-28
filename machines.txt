@@ -3,17 +3,12 @@ kerborg-prod-app-1		amd64 Ubuntu 20.04 RT server (krbdev.mit.edu)
 kerborg-prod-app-2		web server {www,k5wiki,blog}.kerberos.org
 krbdev-buildbot			amd64 Ubuntu 16.04 buildbot master
 
-krbdev-guest-01			amd64 Ubuntu 16.04 buildbot worker (v01)
 krbdev-guest-02			amd64 Ubuntu 18.04 buildbot worker (v02)
-krbdev-guest-03			i386 Ubuntu 16.04 buildbot worker (v03)
 krbdev-guest-04			i386 Ubuntu 18.04 buildbot worker (v04)
 
-krbdev-guest-26			amd64 Ubuntu 10.04 spare buildbot worker (v06)
-				TEST.KERBEROS.ORG KDC for rdns test
-				case
-krbdev-guest-29			amd64 Ubuntu 12.04 buildbot worker (v09)
+krbdev-guest-08                 amd64 RHEL 8 buildbot worker (v08)
+krbdev-guest-09                 amd64 RHEL 9 buildbot worker (v09)
 
-krbdev-guest-33			coverity buildbot worker (v13)
-
-krbdev-guest-36			amd64 Ubuntu 14.04 buildbot worker (v16)
-krbdev-guest-37			i386 Ubuntu 14.04 buildbot worker (v17)
+krbdev-guest-20                 amd64 Ubuntu 20.04 buildbot worker (v20)
+krbdev-guest-22                 amd64 Ubuntu 22.04 buildbot worker (v22)
+                                performs doc build and coverity scan
