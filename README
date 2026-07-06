@@ -13,3 +13,10 @@ svnhooks/
         Hook scripts for our Subversion repositories.  This set comes
         from the krb5 repository; krb5-appl might have a slightly
         different set of scripts.
+
+test1
+testfoo
+test2
+test3
+test4
+test5
